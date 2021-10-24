@@ -7,18 +7,19 @@
 
 \bibliography{proposal}
 \begin{document}
-\includepdf[pages=-, pagecommand={}, width=\textwidth]{proposalform_filled.pdf}
+\includepdf[pages=-, pagecommand={}, width=\textwidth]{proposalform_filled3.pdf}
 \section{Introduction and Description of the Work}
 
-Individuals will have many behavioural traits that could be unique enough to identify them. For example, work has been done to identify the author of a written document based on the handwriting of the author. Similarly to how handwriting can be used to identify an author, it is acknowledged that the performer of a piece of music might be able to be identified from a performance. This project aims to investigate the identification of a performer of a piece of music based on qualities of how they play the piece, and compare which of these qualities are most useful, and how identification using these qualities holds up under variation, such as detuning the instrument, or the addition of background noise.
+Individuals will have many behavioural traits that could be unique enough to identify them. For example, work has been done to identify the author of a written document based on the handwriting of the author. Similarly to how handwriting can be used to identify an author, it is acknowledged that the performer of a piece of music might be able to be identified from a performance. This project aims to investigate the identification of a performer of a piece of music based on qualities of how they play the piece, and compare which of these qualities are most useful.
 
 There are numerous ways that such an identification mechanism could be created. For example, a signature could be created based on microsecond timings of when keys are pressed, or on the distribution of amplitudes of notes, or on the variation of tempo throughout the performance.
 
-Each identification system will store metrics of performed pieces, and upon performance of the same piece by the same pianist, the system will attempt to identify the pianist. A number of identification systems will be created, with an identification system for each combination of metrics possible.
+Each identification system will store metrics of performed pieces, and upon performance of the same piece by a pianist, the system will attempt to identify the pianist. A number of identification systems will be created, with an identification system for each combination of metrics possible.
 
 To make an identification decision on a particular performance, a system will calculate the metrics of the performance, calculate similarity of each metric to the corresponding metric of each stored performance, and choose the performance with the highest aggregate similarity.
 
-To evaluate these systems, I will create pianist profiles that store information about how an artificial pianist might play a piece. This might include information like the probability distribution of their note offsets, relative to the expected note start time, or the distribution of key amplitudes they will play, etc. Using MusicXML scores from OpenScore, MIDI can be generated from a score and a pianist profile, which will then be synthesized into audio in the form of a WAV file. This can then be used to generate a number of statistics: false positive rate, false negative rate, precision, recall, and f-score, which each system will be evaluated on.
+I will evaluate these systems on both synthesised and real-world performances. For the synthesised performances, I will create pianist profiles that store information about how an artificial pianist might play a piece. This might include information like the probability distribution of their note offsets, relative to the expected note start time, or the distribution of key amplitudes they will play, etc. Using MusicXML scores from OpenScore, MIDI can be generated from a score and a pianist profile, which will then be synthesized into audio in the form of a WAV file. I will then gather multiple performances of a number of pieces from a small number of pianists which I will use to evaluate the systems. Both datasets will be used to generate precision, recall, and f-scores.
+
 
 \section{Starting Point}
 
@@ -70,10 +71,10 @@ The project will be successful if the following criteria are met:
 \begin{itemize}
     
   \item
-Each of the core deliverables is successfully implemented and it can be demonstrated that they work as intended
+Each of the core deliverables is successfully implemented and it can be demonstrated that they work as intended.
 
 \item
-A quantitative comparison is performed of each of the identification systems developed using the synthesized data
+A quantitative comparison is performed of each of the identification systems developed using the synthesized and real-world data.
 \end{itemize}
 
 \section{Work Plan}

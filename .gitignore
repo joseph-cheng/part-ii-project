@@ -3,6 +3,11 @@
 *.fls
 *.log
 *.synctex.gz
+*.aux
+*.out
+*.bcf
+*.bbl
+*.blg
 *~
 *.swp
 
