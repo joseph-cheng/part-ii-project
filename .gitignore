@@ -8,6 +8,7 @@
 *.bcf
 *.bbl
 *.blg
+*.run.xml
 *~
 *.swp
 
