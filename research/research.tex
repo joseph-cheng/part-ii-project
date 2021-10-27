@@ -3,9 +3,11 @@
 \usepackage{parskip}
 \usepackage{graphicx}
 \usepackage{caption}
+\usepackage[backend=biber]{biblatex}
+\usepackage[utf8]{inputenc}
 
 \graphicspath{ {./images/} }
-
+\addbibresource{bibliography.bib}
 
 \begin{document}
 \section{Main DSP Concepts}
@@ -35,9 +37,10 @@ Expanding $e^{-j2\pi f t}$, this can be rewritten as follows:
 
 This makes the Fourier transform's purpose more obvious: we are decomposing a time signal into the frequencies of sine and cosine waves that make it up. Figure 1 shows the box function and its Fourier transform.
 
+
 \begin{minipage}{\textwidth}
   \centering
-  \includegraphics[trip=0 0 0, clip, scale=0.2]{fourier_transform}
+  %\includegraphics[trip=0 0 0, clip, scale=0.2]{fourier_transform}
   \captionof{figure}{Fourier transform of square wave}
 \end{minipage}
 
@@ -63,12 +66,46 @@ In practical use, we will be operating on finite sequences. A useful property of
 
 To calculate it from our finite signal $x_0, \ldots, x_{N-1}$, we simply replace the bounds on the sum of our DTFT from $-\infty$ to $\infty$ with $0$ to $N-1$.
 
+There are other discrete transforms as well. One of particular use for this project will be the discrete cosine transform (DCT) which is similar to the DFT, but transforms a discrete sequence into its representation as a sum of cosine functions, meaning that only real values are produces (unlike the DFT, which produces imaginary values as mentioned earlier). It is defined as follows on a finite sequence $x_0, \ldots x_{N-1}$:
+
+\[
+    X_k = \sum_{n=0}^{N-1} x_n\cos \left[ \frac{\pi}{N}\left(n + \frac{1}{2}\right)k\right]
+\] 
+
+\section{Quantifying Timbre}
+
+A variety of research has been done on quantifying timbre. For example, mel frequency cepstrum coefficients (MFCCs) have been used to distinguish instruments \cite{mfcc}. Some work has also been done on quantifying timbre differences on the piano specifically \cite{pianotimbre} using partials from a power spectrum.
+
+The MFCCs are not too hard to calculate:
+
+\begin{itemize}
+    \item
+        Compute the DFT of the signal
+       
+    \item
+        Convert the Fourier transform to the mel scale, which is intended to keep perceptually equidistant differences in pitch equidistant in the scale.
+
+    \item
+        Take the log of the spectrum
+
+    \item
+        Take the DCT of the resulting log power spectrum
+\end{itemize}
+
+In our case, we would take a short signal of a piano note onset, and calculate its MFCCs, which will be the amplitudes of the spectrum obtained in the final step of the calculation above.
+
+It should be noted that these MFCCs will be sensitive to the pitch of notes, so some normalization might have to be done on the initial frequency spectrum to ensure fair comparison.
+
+We can also quantify timbre using partials of a particular note. To do this, we take our power spectrum and look at the value in our Fourier transform of the integer multiples of our fundamental frequency. Of course, this requires knowing the fundamental frequency, so we will have to have some algorithms to do this, for which there exist many \cite{pitchdetectionreview}. Research suggests that higher order partials are louder in harder pressed notes than in softly pressed notes \cite{pianotimbre}.
 
 
 
 
 
 
+
+
+\printbibliography
 
 
 \end{document}
