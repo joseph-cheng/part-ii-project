@@ -11,4 +11,6 @@
 *.run.xml
 *~
 *.swp
+*.gif
+*.png
 

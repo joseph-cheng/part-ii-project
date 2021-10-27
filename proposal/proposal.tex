@@ -4,6 +4,7 @@
 \usepackage{biblatex}
 \usepackage{hyperref}
 \usepackage{pdfpages}
+\usepackage{enumitem}
 
 \bibliography{proposal}
 \begin{document}
@@ -18,7 +19,7 @@ Each identification system will store metrics of performed pieces, and upon perf
 
 To make an identification decision on a particular performance, a system will calculate the metrics of the performance, calculate similarity of each metric to the corresponding metric of each stored performance, and choose the performance with the highest aggregate similarity.
 
-I will evaluate these systems on both synthesised and real-world performances. For the synthesised performances, I will create pianist profiles that store information about how an artificial pianist might play a piece. This might include information like the probability distribution of their note offsets, relative to the expected note start time, or the distribution of key amplitudes they will play, etc. Using MusicXML scores from OpenScore, MIDI can be generated from a score and a pianist profile, which will then be synthesized into audio in the form of a WAV file. I will then gather multiple performances of a number of pieces from a small number of pianists which I will use to evaluate the systems. Both datasets will be used to generate precision, recall, and f-scores.
+For this project, I will use both synthesised and real-world data. The synthesised data will not be used for evaluation, but instead for development of the project. This will allow me to begin development of the project before having the data collection approved by the ethics committee, and having gathered the real-world data itself. For the synthesised performances, I will create pianist profiles that store information about how an artificial pianist might play a piece. This might include information like the probability distribution of their note offsets, relative to the expected note start time, or the distribution of key amplitudes they will play, etc. Using MusicXML scores from OpenScore, MIDI can be generated from a score and a pianist profile, which will then be synthesized into audio in the form of a WAV file. For the real-world data, I will collect performances of a number of pieces from a small number of pianists. I plan to collect this data by contacting Cambridge music societies and recording their performances with a microphone. With this dataset, I will generate measurements like f-score, precision, and recall.
 
 
 \section{Starting Point}
@@ -59,11 +60,8 @@ This project will consist of a number of different components:
 \end{itemize}
 
 \subsection{Possible Extensions}
-One extension would be to add metrics and perform additional evaluation for use with instruments other than pianos, which potentially could introduce qualities that the piano cannot create, such as pitch bends, or microtonal notes.
+One extension would be to add metrics and perform additional evaluation for use with instruments other than pianos, which potentially could introduce qualities that the piano cannot create, such as pitch bends, or microtonal notes. Evaluation in the same vein as the core project would involve collecting data from various other instruments , but implementation of additional metrics could be tested with synthetic data.
 
-In order to create better pianist profiles, some work could be done in either generating pianist profiles from real pianist performances, or in attempting to work out what fingers each note will be played with, or which hand each note is played with to generate more ‘real’ MIDI data.
-
-Another extension to this project would be to attempt this identification with real pianists, instead of artificial pianists, to see to what extent the musical identification techniques developed work on real pianists.
 
 \section{Success Criteria}
 
@@ -74,119 +72,125 @@ The project will be successful if the following criteria are met:
 Each of the core deliverables is successfully implemented and it can be demonstrated that they work as intended.
 
 \item
-A quantitative comparison is performed of each of the identification systems developed using the synthesized and real-world data.
+A quantitative comparison is performed of each of the identification systems developed using the real-world data.
 \end{itemize}
 
 \section{Work Plan}
 
-\begin{itemize}
+\begin{enumerate}[label=\textbf{Slot \arabic*:}]
     
-  \item \textbf{Slot 1}: 2021/10/15 - 2021/10/28 \hspace*{\fill}Michaelmas Term Week 2-3
+  \item 2021/10/15 - 2021/10/28 \hspace*{\fill}Michaelmas Term Week 2-3
 
 Read literature on digital signal processing, like Understanding Digital Signal Processing by R.G. Lyons. Investigate the use of the mentioned Python libraries. Read and understand research on tempo inference, and look into how the timbre of a sound can be quantitatively represented.
 
 \textbf{Milestone}: Produce LaTeX source for a document explaining important DSP concepts, tempo inference, and timbre measurement that can be shown to my supervisor.
 
 \item
-  \textbf{Slot 2}: 2021/10/29 - 2021/11/11 \hspace*{\fill} Michaelmas Term Week 4-5
+  2021/10/29 - 2021/11/11 \hspace*{\fill} Michaelmas Term Week 4-5
 
 Complete implementation of data synthesis, such that a MusicXML score can be entered and piano audio can be synthesized, and implement pianist profiles such that audio can be generated from different ‘pianists’, and variation can be added to the signals.
 
-\textbf{Milestone}: Audio from some MusicXML scores can be generated and shown to my supervisor, and furthermore the metric calculators from Slot 2 can be used on the generated audio.
+Assuming the data collection has been approved by the ethics committee, begin contacting music societies about recording their performances.
+
+\textbf{Milestone}: Audio from some MusicXML scores can be generated and shown to my supervisor.
 
 \item
-  \textbf{Slot 3}: 2021/11/12 - 2021/11/25 \hspace*{\fill}Michaelmas Term Week 6-7
+  2021/11/12 - 2021/11/25 \hspace*{\fill}Michaelmas Term Week 6-7
 
 Complete implementation of the metric calculators.
+
+Begin collection of real-world data.
 
 \textbf{Milestone}: Code for the metric calculators can be shown to my supervisor, and using the data synthesis system from slot 2, example metrics can be calculated from some test data.
 
 \item
-  \textbf{Slot 4}: 2021/11/26 - 2021/12/09 \hspace*{\fill}Michaelmas Term Week 8-Christmas Holiday Week 1
+  2021/11/26 - 2021/12/09 \hspace*{\fill}Michaelmas Term Week 8-Christmas Holiday Week 1
 
 Write metric similarity calculators for each implemented metric.
 
-\textbf{Milestone}: Test data can be generated using the data synthesis system and example metric similarity scores for each metric can be produced.
+Complete collection of real-world data.
+
+\textbf{Milestone}: Test data can be generated using the data synthesis system and example metric similarity scores for each metric can be produced. The real-world dataset can be shown to my supervisor.
 
 \item
-  \textbf{Slot 5}: 2021/12/10 - 2021/12/23 \hspace*{\fill}Christmas Holiday Week 2-3
+  2021/12/10 - 2021/12/23 \hspace*{\fill}Christmas Holiday Week 2-3
 
 Slack period: Complete any milestones that were not delivered in their slot. Work on extensions if there are no such milestones.
 
 \textbf{Milestone}: Every previous milestone deliverable can be shown to have been completed to my supervisor.
 
 \item
-  \textbf{Slot 6}: 2021/12/24 - 2022/01/06 \hspace*{\fill}Christmas Holiday Week 4-5
+  2021/12/24 - 2022/01/06 \hspace*{\fill}Christmas Holiday Week 4-5
 
-Write the progress report and the progress presentation. Work on extensions if there is time to do so. The deadlines for these are still TBC, but I thought it would be better to work
+Write the progress report and the progress presentation. Work on extensions if there is time to do so.
 
 \textbf{Milestone}: The progress report and presentation will have been completed and shown to my supervisor.
 
 \item
 
-  \textbf{Slot 7}: 2022/01/07 - 2022/01/20 \hspace*{\fill}Christmas Holiday Week 6-7
+  2022/01/07 - 2022/01/20 \hspace*{\fill}Christmas Holiday Week 6-7
 
-Discuss evaluation methods with my supervisor, and decide on a plan. Write a first draft of the Introduction chapter of the dissertation
+Discuss evaluation methods with my supervisor, and decide on a plan. Write a first draft of the Introduction chapter of the dissertation.
 
 \textbf{Milestone}: An evaluation plan will be created and sent to my supervisor, and the first draft of the Introduction chapter of the dissertation will be sent to my supervisor.
 
 \item
 
-  \textbf{Slot 8}: 2022/01/21 - 2022/02/03 \hspace*{\fill} Lent Term Week 1-2
+  2022/01/21 - 2022/02/03 \hspace*{\fill} Lent Term Week 1-2
 
 Evaluate each of the core deliverables, and write a first draft of the Preparation chapter of the dissertation, and begin work on a first draft of the Implementation chapter of the dissertation.
 
 \textbf{Milestone}: Evaluations of the core deliverables will be completed. A first draft of the Preparation chapter will be written and shown to my supervisor.
 
 \item
-  \textbf{Slot 9}: 2022/02/04 - 2022/02/17 \hspace*{\fill}Lent Term Week 3-4
+  2022/02/04 - 2022/02/17 \hspace*{\fill}Lent Term Week 3-4
 
 Slack period: Complete any milestones that were not delivered in their slot. Work on extensions if there are no such milestones.
 
 \textbf{Milestone}: Every previous milestone deliverable can be shown to have been completed to my supervisor.
 
 \item
-  \textbf{Slot 10}: 2022/02/18 - 2022/03/03 \hspace*{\fill}Lent Term Week 5-6
+  2022/02/18 - 2022/03/03 \hspace*{\fill}Lent Term Week 5-6
 
 Complete the first draft of the Implementation chapter of the dissertation, and write a first draft of the Evaluation chapter of the dissertation.
 
 \textbf{Milestone}: The Implementation and Evaluation chapters of the dissertation will both have been completed and shown to my supervisor.
 
 \item
-  \textbf{Slot 11}: 2022/03/04 - 2022/03/17 \hspace*{\fill}Lent Term Week 7-8
+  2022/03/04 - 2022/03/17 \hspace*{\fill}Lent Term Week 7-8
 
 Write the Conclusion chapter of the dissertation, and work on any extensions.
 
 \textbf{Milestone}: The first draft of my dissertation will have been completed and shown to my supervisor. Code from any extensions may also be available as a milestone.
 
 \item
-  \textbf{Slot 12}: 2022/03/18 - 2022/03/31 \hspace*{\fill}Easter Holiday Week 1-2
+  2022/03/18 - 2022/03/31 \hspace*{\fill}Easter Holiday Week 1-2
 
 Slack period: Complete any milestones that were not delivered in their slot. Work on evaluating extensions if there are no such milestones.
 
 \textbf{Milestone}: Every previous milestone deliverable can be shown to have been completed to my supervisor.
 
 \item
-  \textbf{Slot 13}: 2022/04/01 - 2022/04/14 \hspace*{\fill}Easter Holiday Week 3-4
+  2022/04/01 - 2022/04/14 \hspace*{\fill}Easter Holiday Week 3-4
 
 Write a new revision of the dissertation based on feedback from my supervisor.
 
 \textbf{Milestone}: A second draft of the dissertation will be completed and shown to my supervisor.
 
 \item
-  \textbf{Slot 14}: 2022/04/15 - 2022/04/28 \hspace*{\fill}Easter Holiday Week 5-6
+  2022/04/15 - 2022/04/28 \hspace*{\fill}Easter Holiday Week 5-6
 
-Refine the dissertation even further using new feedback from my supervisor
+Refine the dissertation even further using new feedback from my supervisor.
 
 \textbf{Milestone}: The final draft of the dissertation will have been completed.
 
 \item
-  \textbf{Slot 15}: 2022/04/29 - 2022/05/13 \hspace*{\fill}Easter Term Week 1-2
+  2022/04/29 - 2022/05/13 \hspace*{\fill}Easter Term Week 1-2
 
 Make final changes and refinements to the dissertation, and finish any milestones not yet completed.
 
 \textbf{Milestone}: Dissertation and code will be submitted.
-\end{itemize}
+\end{enumerate}
 
 \section{Resource Declaration}
 
