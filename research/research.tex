@@ -8,7 +8,7 @@
 
 
 \begin{document}
-\section*{Main DSP Concepts}
+\section{Main DSP Concepts}
 
 We can model an analog signal as a continuous function of time $x(t)$. We can model a digital signal as a discrete sequence $\{x_n\} = \cdots, x_{-2}, x_{-1}, x_0, x_1, x_2, \cdots$, essentially a list of numbers.  With a sampling period $t_s$, we can sample an analog signal $x(n)$ to generate a digital signal $\{x_n\}$ as follows: $\{x_n\} = x(nt_s)$, or equivalently with sampling period  $f_s$, $\{x_n\} = x(\frac{n}{f_s})$
 
@@ -20,7 +20,7 @@ If a system $T$ is time-invariant if it holds that for any $d$, $\{y_{n-d}\} = T
 
 Systems that have both of these properties are referred to as linear time-invariant (LTI) systems, and are of particular importance because of certain properties about them that hold. For example, the impulse response of an LTI system completely characterizes it, by convolving the an input sequence with the system's impulse response.
 
-\subsection*{The Fourier Transform}
+\subsection{The Fourier Transform}
 
 An important operation in DSP is the Fourier transform, defined as follows on a continuous signal $x(t)$:
 
@@ -42,6 +42,29 @@ This makes the Fourier transform's purpose more obvious: we are decomposing a ti
 \end{minipage}
 
 The Fourier transform produces both real and imaginary components. If we only consider real signals, the real portion of the Fourier transform corresponds to the even parts of the signal (the cosine components), and the imaginary portion of the Fourier transform corresponds to the odd parts of the signal (the sine components). This means that the box function in Figure 1 has an entirely real Fourier transform, because it is an even function. Another property of the Fourier transform of real functions is that the the real and imaginary components will be even, so we do not gain any information from the negative parts of the transform.
+
+The Fourier transform has some important properties. Firstly, it is linear, and furthermore there are two theorems that apply: the convolution and modulation theorem.
+
+The convolution theorem says that convolution in the time domain is equivalent to multiplication in the frequency domain, and the modulation theorem says that multiplication in the time domain is equivalent to convolution in the frequency domain.
+
+\subsection{The DTFT and DFT}
+
+In digital signal processing, we work with discrete sequences, and so the traditional Fourier transform is not that useful. Instead, we use the discrete time Fourier transform (DTFT), which allows us to take the Fourier transform of a discrete sequence. It is defined as follows:
+
+\[
+  \hat{X}(f) = \mathcal{F}\{\{x_n\}\}(f) = \sum_{n=-\infty}^\infty x_n \cdot e^{-2\pi j \frac{f}{f_s}n}
+\] 
+
+This definition comes simply from taking $\{x_n\}$ as sampled from some continuous signal.
+
+The DTFT has the same important properties of the Fourier transform as mentioned before: linearity, and adhering to the convolution and modulation theorems.
+
+In practical use, we will be operating on finite sequences. A useful property of the Fourier transform, that holds also for the DTFT, is that if the input signal is periodic, then the resulting spectrum will be sampled, or discrete. This means that if we have some finite signal, we can turn it into an infinite discrete sequence by repeating it and making it periodic, at which point we can take the DTFT to achieve a discrete frequency spectrum. This is called the discrete Fourier transform (DFT).
+
+To calculate it from our finite signal $x_0, \ldots, x_{N-1}$, we simply replace the bounds on the sum of our DTFT from $-\infty$ to $\infty$ with $0$ to $N-1$.
+
+
+
 
 
 
