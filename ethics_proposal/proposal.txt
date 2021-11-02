@@ -1,0 +1,62 @@
+Title of the research project:
+
+Identifying Pianists through Audio of a Performance
+
+
+CRSID of project leader:
+
+jac303
+
+
+CRSID of supervisor:
+
+jkf21
+
+
+Names of applicants:
+
+Joseph Cheng (not sure if I'm supposed to include supervisor name here, it says 'where relevant', but not sure if that applies here or not)
+
+
+Email address:
+
+jac303@cam.ac.uk
+
+
+Start date:
+
+12/11/2021
+
+
+End Date:
+
+13/05/2022
+
+
+Type of study:
+
+Data research
+
+
+Funding Body:
+
+(blank)
+
+
+Brief description:
+
+This is an undergraduate Part II project that intends to investigate how the performer of a piece of piano music can be identified based on qualities of how they play the piece, from audio data of their performance.
+
+To evaluate this project, we intend to use real-world data of piano performances to be collected by sitting in on meetings of JCR music societies, or other amateur music societies, and asking a number of members to play a short piece whilst we record the audio.
+
+
+Precautions taken:
+
+No other data will be recorded about the participants other other than the audio of their performance, which will be matched up with an anonymous identifier. Data will only be stored on our local machines or on USB drives.
+
+Consent from participants will be obtained directly, by getting explicit written confirmation from each performer before recording them.
+
+The data being collected is not very sensitive, and the dataset will not record any other identifiable information about a particular performance. Even in the case that someone was able to identify who the performer of a particular performance was, it is unlikely that this could cause harm to any participant.
+
+
+
