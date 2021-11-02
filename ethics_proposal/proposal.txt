@@ -52,7 +52,7 @@ To evaluate this project, we intend to use real-world data of piano performances
 
 Precautions taken:
 
-No other data will be recorded about the participants other other than the audio of their performance, which will be matched up with an anonymous identifier. Data will only be stored on our local machines or on USB drives.
+No other data will be recorded about the participants other than the audio of their performance, which will be matched up with an anonymous identifier. Data will only be stored on our local machines or on USB drives.
 
 Consent from participants will be obtained directly, by getting explicit written confirmation from each performer before recording them.
 
