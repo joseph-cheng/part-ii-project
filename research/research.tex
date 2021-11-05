@@ -1,11 +1,15 @@
 \documentclass[12pt]{article}
 \usepackage[margin=1.0in]{geometry}
 \usepackage{parskip}
-\usepackage{graphicx}
 \usepackage{caption}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[backend=biber]{biblatex}
+\usepackage[utf8]{inputenc}
 
-\graphicspath{ {./images/} }
-
+\addbibresource{bibliography.bib}
 
 \begin{document}
 \section{Main DSP Concepts}
@@ -36,9 +40,42 @@ Expanding $e^{-j2\pi f t}$, this can be rewritten as follows:
 This makes the Fourier transform's purpose more obvious: we are decomposing a time signal into the frequencies of sine and cosine waves that make it up. Figure 1 shows the box function and its Fourier transform.
 
 \begin{minipage}{\textwidth}
-  \centering
-  \includegraphics[trip=0 0 0, clip, scale=0.2]{fourier_transform}
-  \captionof{figure}{Fourier transform of square wave}
+\begin{minipage}{.5\textwidth}
+    \begin{tikzpicture}[
+      declare function={
+          func(\x)= (\x<=-1) * (0)   +
+         and(\x>-1, \x<=1) * (1)     +
+         (\x>1) * (0);
+      }
+    ]
+    \begin{axis}[
+      axis x line=middle, axis y line=middle,
+      ymin=-1, ymax=2, ytick={-1,...,2}, ylabel=$x(t)$,
+      xmin=-2, xmax=2, xtick={-2,...,2}, xlabel=$t$,
+    ]
+    % lol
+    \addplot[blue, domain=-2:2, samples=100]{func(x)};
+    \end{axis}
+    \end{tikzpicture} 
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+    \begin{tikzpicture}[
+      declare function={
+          func(\x) = sin(deg(\x))/(\x);
+      }
+    ]
+    \begin{axis}[
+      axis x line=middle, axis y line=middle,
+      ymin=-1, ymax=2, ylabel=$X(f)$,
+      xmin=-10, xmax=10, xlabel=$f$,
+    ]
+    % lol
+    \addplot[blue, domain=-10:10, samples=100]{func(x)};
+    \end{axis}
+    \end{tikzpicture} 
+\end{minipage}
+\captionof{figure}{The rectangular function and its Fourier transform}
+\centering
 \end{minipage}
 
 The Fourier transform produces both real and imaginary components. If we only consider real signals, the real portion of the Fourier transform corresponds to the even parts of the signal (the cosine components), and the imaginary portion of the Fourier transform corresponds to the odd parts of the signal (the sine components). This means that the box function in Figure 1 has an entirely real Fourier transform, because it is an even function. Another property of the Fourier transform of real functions is that the the real and imaginary components will be even, so we do not gain any information from the negative parts of the transform.
@@ -63,12 +100,152 @@ In practical use, we will be operating on finite sequences. A useful property of
 
 To calculate it from our finite signal $x_0, \ldots, x_{N-1}$, we simply replace the bounds on the sum of our DTFT from $-\infty$ to $\infty$ with $0$ to $N-1$.
 
+There are other discrete transforms as well. One of particular use for this project will be the discrete cosine transform (DCT) which is similar to the DFT, but transforms a discrete sequence into its representation as a sum of cosine functions, meaning that only real values are produces (unlike the DFT, which produces imaginary values as mentioned earlier). It is defined as follows on a finite sequence $x_0, \ldots x_{N-1}$:
+
+\[
+    X_k = \sum_{n=0}^{N-1} x_n\cos \left[ \frac{\pi}{N}\left(n + \frac{1}{2}\right)k\right]
+\] 
+
+\section{Quantifying Timbre}
+
+A variety of research has been done on quantifying timbre. For example, mel frequency cepstrum coefficients (MFCCs) have been used to distinguish instruments \cite{mfcc}. Some work has also been done on quantifying timbre differences on the piano specifically \cite{pianotimbre} using partials from a power spectrum.
+
+The MFCCs are not too hard to calculate:
+
+\begin{itemize}
+    \item
+        Compute the DFT of the signal
+       
+    \item
+        Convert the Fourier transform to the mel scale, which is intended to keep perceptually equidistant differences in pitch equidistant in the scale.
+
+    \item
+        Take the log of the spectrum
+
+    \item
+        Take the DCT of the resulting log power spectrum
+\end{itemize}
+
+In our case, we would take a short signal of a piano note onset, and calculate its MFCCs, which will be the amplitudes of the spectrum obtained in the final step of the calculation above.
+
+It should be noted that these MFCCs will be sensitive to the pitch of notes, so some normalization might have to be done on the initial frequency spectrum to ensure fair comparison.
+
+We can also quantify timbre using partials of a particular note. To do this, we take our power spectrum and look at the value in our Fourier transform of the integer multiples of our fundamental frequency. Of course, this requires knowing the fundamental frequency, so we will have to have some algorithms to do this, for which there exist many \cite{pitchdetectionreview}. Research suggests that higher order partials are louder in harder pressed notes than in softly pressed notes \cite{pianotimbre}.
+
+
+\section{Tempo Inference}
+
+This section will outline beat tracking techniques developed by Ellis \cite{tempoinference}.
+
+The algorithm proposed by Ellis is a dynamic programming algorithm. It first works by estimating some global tempo measure over the whole signal, and then using dynamic programming to determine beat times, which maximizes a function that tries to combine matching of onset times, and maintaining a locally similar beat interval.
+
+
+\subsection{Dynamic Programming}
+
+This function that we maximize is formulated as below:
+
+\[
+    C(\{t_i\}) = \sum_{i=1}^N O(t_i) + \alpha \sum_{i=2}^N F(t_i - t_{i-1}, \tau_p)
+\] 
+
+
+Here, $\{t_i\}$ is a particular proposed set of beat instants, $O(t)$ is some measure of the strength of the onset at time $t$, and $F(\Delta t, \tau)$ is a measure of consistency between two beat times $\Delta t$ and the ideal spacing $\tau$ defined by the target tempo, and $\alpha$ allows weighting between these two parameters.
+
+The paper gives an example definition of $F$:
+
+\[
+    F(\Delta t, \tau) =-\left(\log \frac{\Delta t}{\tau}\right)^2
+\] 
+
+To actually perform the dynamic programming, we first assume some fixed interval in the time-domain for traversing our signal, and then define the following function $C^*(t)$ which measures the best possible score of all $\{t_i\}$ that end at $t$:
+
+\[
+    C^*(t) = O(t) + \max_{\tau=0\ldots t}\{\alpha F(t - \tau, \tau_p) + C^*(\tau)\}
+\] 
+
+Intuitively, we can read this as the best cost for time $t$ is the onset cost at that time $t$ plus the best cost for the best preceding beat time $\tau$ plus the transition cost between this beat time $\tau$ and $t$. It is the fixed interval in the time-domain that allows us to compute this. We also do not need to search the entire range $0\ldots t$ in practice, since some beats will be so far that they are not worth checking, so the paper suggests $\tau = t - 2\tau_p \ldots t - \frac{\tau_p}{2}$
+
+
+Furthermore, in this calculation of $C^*(t)$, we also record the $\tau$ chosen so that we can reconstruct the beat sequence. We can formulate this using the function $P^*(t)$ as follows:
+
+\[
+    P^*(t) = \mathrm{arg }\max_{\tau=0\ldots t}\{\alpha F(t - \tau, \tau_p) + C^*(\tau)\}
+\] 
+
+From these two functions, it is easy to construct the optimal beat sequence. Start by computing $C^*(t)$ for every possible time, recording values of $P^*(t)$ as we go, and then from the end of the signal, look for the $t$ with the highest value of $C^*(t)$, and from this $t$ we use $P^*(t)$ to reconstruct the beat sequence in reverse.
+
+
+\subsection{Onset Function}
+
+We now discuss the paper's definition of $O(t)$.
+
+The idea behind this definition is to capture when there are large jumps in energy in multiple frequency bands. It works as follows:
+
+\begin{itemize}
+    \item
+        Calculate a spectrogram of the sound by calculating DFTs of windows of the sound. The paper uses a 32ms window and advances of 4ms.
+
+    \item
+        Map the frequencies to the mel scale, in order to try and more accurately represent perceptual differences.
+
+    \item
+        Convert values to dB, and calculate the difference between subsequent windows, setting negative values to zero.
+
+    \item
+        Convert this spectrogram to a signal by summing all the differences
+
+    \item
+        Pass this signal through a high-pass filter with cutoff at 0.4Hz, and smooth by convolution with a Gaussian envelope (the paper suggests a `width' of 20ms).
+
+    \item
+        Finally, divide by the standard deviation of the signal for normalisation. The resulting signal is used as $O(t)$.
+\end{itemize}
+
+\subsection{Global Tempo Estimation}
+
+
+The idea behind the global tempo estimation mechanism is relatively simple to understand. We take some proposed global tempo $\tau$, and then from our onset strength signal $O(t)$, we create a delayed version $O(t-\tau)$. Taking the inner product of these two functions will give us the correlation between these two signals. When $\tau$ lines up lots of onset peaks, we get a high correlation, and such a $\tau$ will be close to the tempo.
+
+One important factor to consder is that for a tempo $\tau$, $k\tau$ (where $k \in \mathbb{Z}^+$) might be equally as good a tempo, so we need to have some mechanism of choosing the best estimate.
+
+The paper does this by noting that in empirical studies, humans have a bias towards 120 BPM, and so we create an envelope which we multiply our autocorrelation by, such that those tempos far from what would be most likely to be perceived by humans are weighted less likely. This envelope is defined as follows:
+
+\[
+    W(\tau) = \exp\left( -\frac{1}{2}\left(\frac{\log_2 \frac{\tau}{\tau_0}}{\sigma_\tau}\right)^2\right)
+\] 
+
+Here, $\tau_0$ is a parameter that represents the centre of the bias (0.5 for 120 BPM), and $\sigma_\tau$ controls the width of the envelope (set to 1.4 through empirical testing).
+
+Then, we can define a function that represents the score of a given tempo estimate $\tau$ as follows:
+
+\[
+    \mathrm{TPS}(\tau) = W(\tau) \sum_t O(t)O(t - \tau)
+\] 
+
+Finally, we get our tempo estimate by choosing the $\tau$ with the largest $\mathrm{TPS}(\tau)$.
+
+\subsection{Application for this project}
+
+For this project, we also want to track an estimate of tempo over time. So, using beat tracking we can take individual beat, and create a function that represents the difference in beat intervals over time.
 
 
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+\printbibliography
 
 
 \end{document}
