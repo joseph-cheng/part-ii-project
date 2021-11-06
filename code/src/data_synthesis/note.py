@@ -10,16 +10,17 @@ class Note:
         "B": 11,
     }
 
-    def __init__(self, note_value, duration):
+    def __init__(self, note_value, duration, tie=False, tied_from=None):
         """
         Constructor for Note
 
         note_value : integer representing MIDI note value (0-127) or human-readable note (e.g. D#4)
-        duration: float representing duration of note, as a multiple of a crotchet
+        duration: multiple of crotchets that represents the duration
+        onset: number of crotchets since start of piece where note should start
+        tied_from: a previous note that this note was tied from
         """
 
         if isinstance(note_value, str):
-            note_value = note_value.upper()
             # Need to find where octave starts, octave can be from -1 to 9
             split_loc = None
             for i, c in enumerate(note_value):
@@ -42,11 +43,20 @@ class Note:
             # calculate MIDI number
 
             accidental_factor = 0
-            # if len(note) > 1, then it will be followed by # or b
-            if len(note) > 1:
-                accidental_factor = 1 if note[1] == "#" else -1
+            # if len(note) > 1, then it will be followed by #, x, b, or bb
+            if len(note > 1):
+                if note[1:] == '#':
+                    accidental_factor = 1
+                elif note[1:] == 'x':
+                    accidental_factor = 2
+                elif note[1:] == 'b':
+                    accidental_factor = -1
+                elif note[1:] == 'bb':
+                    accidental_factor = -2
+
             note_number = (
-                (octave + 1) * 12 + Note.NOTE_VALUES[note[0]] + accidental_factor
+                (octave + 1) * 12 +
+                Note.NOTE_VALUES[note[0]] + accidental_factor
             )
 
             self.note_value = note_number
@@ -59,3 +69,6 @@ class Note:
             self.note_value = note_value
 
         self.duration = duration
+        self.onset = onset
+        self.tied_from = tied_from
+        self.tied = tied
