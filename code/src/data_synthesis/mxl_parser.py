@@ -2,6 +2,7 @@ from note import Note
 from piece import Piece, Part, Measure
 import xml.etree.ElementTree as ET
 
+GRACE_LENGTH = 0.3
 
 def parse_mxml(filename):
     """
@@ -140,7 +141,7 @@ def parse_note(note_node, voice_progress, current_measure):
 
     for child in note_node:
         if child.tag == "grace":
-            duration = 0.1
+            duration = GRACE_LENGTH
             grace = True
         elif child.tag == "chord":
             chorded_with = current_measure.get_last_added_note()
@@ -189,6 +190,8 @@ def parse_note(note_node, voice_progress, current_measure):
 
     
     onset = voice_progress[voice]
+    if (grace):
+        onset -= GRACE_LENGTH
 
     # only advance progress if not a grace note
     if not(grace or chorded_with):

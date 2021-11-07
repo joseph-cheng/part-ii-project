@@ -35,7 +35,7 @@ class Note:
         MIDDLE = enum.auto()
 
 
-    def __init__(self, note_value, duration, onset, voice, velocity=80, tied_from=None, tie_type=TieType.NONE, chorded_with=None):
+    def __init__(self, note_value, duration, onset, voice, velocity=127, tied_from=None, tie_type=TieType.NONE, chorded_with=None):
         """
         Constructor for Note
 

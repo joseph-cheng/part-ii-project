@@ -3,7 +3,7 @@ from mxl_parser import parse_mxml
 from note import Note
 import numpy as np
 import fluidsynth
-import scipy.io
+import scipy.io.wavfile
 
 def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
     """
@@ -24,7 +24,7 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
     piece.sort()
 
 
-    samples = np.array([])
+    samples = []
     piano = fluidsynth.Synth()
     piano_id = piano.sfload(soundfont_filename)
     piano.program_select(0, piano_id, 0, 0)
@@ -40,7 +40,6 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
 
     while next_note != None or len(notes_playing) > 0:
         # check if there is a noteoff or noteon event next
-        print(f"notes playing: {notes_playing}\n next note onset: {next_note.onset}\n current pos: {current_position}\n")
         if next_note == None or ((next_note.onset - current_position) > min([pair[1] for pair in notes_playing], default=9e99)):
             # noteoff event next
 
@@ -50,9 +49,10 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
             # so, generate samples until noteoff event begins
             # only generate samples if time passes
             if (time_until_noteoff > EPSILON):
-                samples = np.append(samples, piano.get_samples(int(SAMPLE_RATE * time_until_noteoff)))
+                samples.append(piano.get_samples(int(SAMPLE_RATE * time_until_noteoff)))
 
-            piano.noteoff(0, min_note.get_midi_note())
+            if min_note.tie_type == Note.TieType.NONE or min_note.tie_type == Note.TieType.STOP:
+                piano.noteoff(0, min_note.get_midi_note())
             current_position += time_until_noteoff
             notes_playing.remove((min_note, time_until_noteoff))
             notes_playing = [(note, duration - time_until_noteoff) for note, duration in notes_playing]
@@ -62,10 +62,11 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
             # so, generate samples until noteon event begins
             # only generate samples if time has actually passed (e.g. not a chord)
             if (next_note.onset - current_position > EPSILON):
-                samples = np.append(samples, piano.get_samples(int(SAMPLE_RATE * (next_note.onset - current_position))))
+                samples.append(piano.get_samples(int(SAMPLE_RATE * (next_note.onset - current_position))))
 
             # then, turn on the note
-            piano.noteon(0, next_note.get_midi_note(), next_note.velocity)
+            if next_note.tie_type == Note.TieType.NONE or next_note.tie_type == Note.TieType.START:
+                piano.noteon(0, next_note.get_midi_note(), next_note.velocity)
             # update notes playing time left
             notes_playing = [(note, duration - (next_note.onset - current_position)) for note, duration in notes_playing]
             # advance current position
@@ -77,6 +78,8 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
 
     piano.delete()
 
+    samples = np.concatenate(samples)
+
     scipy.io.wavfile.write(wavfile_output, SAMPLE_RATE, samples)
 
-generate_audio("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/scores/beethoven__moonlight_sonata.xml", "/home/joe/Documents/cambridge/ii/part-ii-project/code/res/soundfonts/yamaha_grand.sf2", "output.wav" )
+generate_audio("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/scores/chopin__trois_valses.xml", "/home/joe/Documents/cambridge/ii/part-ii-project/code/res/soundfonts/yamaha_grand.sf2", "output.wav" )

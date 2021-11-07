@@ -15,4 +15,4 @@
 *.png
 __pycache__/
 *.sf2
-
+*.wav
