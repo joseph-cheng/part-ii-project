@@ -1,3 +1,5 @@
+import enum
+
 class Note:
 
     NOTE_VALUES = {
@@ -10,21 +12,46 @@ class Note:
         "B": 11,
     }
 
-    def __init__(self, note_value, duration, tie=False, tied_from=None):
+    # used for __repr__
+    REVERSE_NOTE_VALUES = {
+            0:  "C",
+            1:  "C#",
+            2:  "D",
+            3:  "D#",
+            4:  "E",
+            5:  "F",
+            6:  "F#",
+            7:  "G",
+            8:  "G#",
+            9:  "A",
+            10: "A#",
+            11: "B",
+    }
+
+    class TieType(enum.Enum):
+        NONE = enum.auto()
+        STOP = enum.auto()
+        START = enum.auto()
+        MIDDLE = enum.auto()
+
+
+    def __init__(self, note_value, duration, onset, tied_from=None, tie_type=TieType.NONE, chorded_with=None):
         """
         Constructor for Note
 
         note_value : integer representing MIDI note value (0-127) or human-readable note (e.g. D#4)
-        duration: multiple of crotchets that represents the duration
-        onset: number of crotchets since start of piece where note should start
+        duration: number of divisions in the particular measure that represents duration
+        onset: number of divisions in particular measure since start of measure where note should start
         tied_from: a previous note that this note was tied from
+        tie_type: the type of tie, if this note is tied
+        chorded_with: the previous note that this note is in a chord with
         """
 
         if isinstance(note_value, str):
             # Need to find where octave starts, octave can be from -1 to 9
             split_loc = None
             for i, c in enumerate(note_value):
-                if c[i:].isnumeric():
+                if note_value[i:].isnumeric():
                     split_loc = i
                     break
 
@@ -44,7 +71,7 @@ class Note:
 
             accidental_factor = 0
             # if len(note) > 1, then it will be followed by #, x, b, or bb
-            if len(note > 1):
+            if len(note):
                 if note[1:] == '#':
                     accidental_factor = 1
                 elif note[1:] == 'x':
@@ -71,4 +98,25 @@ class Note:
         self.duration = duration
         self.onset = onset
         self.tied_from = tied_from
-        self.tied = tied
+        self.tie_type = tie_type
+        self.chorded_with = chorded_with
+
+    def get_tie_start(self):
+        if self.tie_type == TieType.START:
+            return self
+        elif self.tie_type == TieType.MIDDLE or self.tie_type == TieType.STOP:
+            return self.tied_from.get_tie_start()
+
+    def get_chord_start(self):
+        if self.chorded_with == None:
+            return self
+        return self.chorded_with.get_chord_start()
+
+    def __repr__(self):
+        octave = (self.note_value // 12)
+        note = Note.REVERSE_NOTE_VALUES[self.note_value - octave * 12]
+
+        return f"({note}{octave-1}, {self.duration})"
+
+
+
