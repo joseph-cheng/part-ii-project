@@ -37,11 +37,8 @@ def parse_part(part_node):
     # treating ties a bit like  stack, documentation is not clear on how to handle them
     open_ties = []
     for measure in get_child(part_node, "measure"):
-        if (last_measure != None):
-            last_note = last_measure.get_last_added_note()
-            if last_note.tie_type == Note.TieType.START or last_note.tie_type == Note.TieType.MIDDLE:
-                open_ties.append(last_note)
         part.add_measure(parse_measure(measure, previous_measure=last_measure))
+        last_measure = part.get_last_measure()
 
     return part
 
@@ -113,8 +110,10 @@ def parse_measure(measure_node, open_ties=[], previous_measure=None):
                 elif note.tie_type == Note.TieType.MIDDLE:
                     note.tied_from = open_ties.pop()
                     open_ties.append(note)
+                elif note.tie_type == Note.TieType.START:
+                    open_ties.append(note)
 
-                measure.add_note(note)
+            measure.add_note(note)
 
     return measure
 
@@ -177,13 +176,23 @@ def parse_note(note_node, voice_progress, current_measure):
         elif child.tag == "rest":
             rest = True
 
+    
+    # if this is the second note in a chord, need to change voice progress
+    # to reflect this, since it will have been advanced when it should not have been
+    if (chorded_with and 
+        current_measure.get_last_added_note() != None and
+        current_measure.get_last_added_note().chorded_with == None):
+
+        voice_progress[voice] -= current_measure.get_last_added_note().duration
+        voice_progress[0] -= current_measure.get_last_added_note().duration
+
 
     
     onset = voice_progress[voice]
 
     # only advance progress if not a grace note
-    if not(grace):
-        # if end of chord, advance differently
+    if not(grace or chorded_with):
+        # if just finished chord, advance chord
         if (chorded_with == None and 
             current_measure.get_last_added_note() != None and
             current_measure.get_last_added_note().chorded_with != None):
@@ -191,24 +200,25 @@ def parse_note(note_node, voice_progress, current_measure):
             chord_start = current_measure.get_last_added_note().get_chord_start()
             # assuming all notes in chord are in same voice
 
-            if voice == 0:
+            if chord_start.voice == 0:
                 voice_progress = {
                     voice: voice_progress[voice] + chord_start.duration for voice in voice_progress}
             else:
-                voice_progress[voice] += chord_start.duration
+                voice_progress[chord_start.voice] += chord_start.duration
+                voice_progress[0] += chord_start.duration
 
+        if voice == 0:
+            voice_progress = {
+                voice: voice_progress[voice] + duration for voice in voice_progress}
         else:
-            if voice == 0:
-                voice_progress = {
-                    voice: voice_progress[voice] + duration for voice in voice_progress}
-            else:
-                voice_progress[voice] += duration
+            voice_progress[voice] += duration
+            voice_progress[0] += duration
 
     if rest:
         return None
 
-    note = Note(note_value, duration, onset,
-                tie_type, chorded_with=chorded_with)
+    note = Note(note_value, duration, onset, voice,
+                tie_type=tie_type, chorded_with=chorded_with)
 
     return note
 

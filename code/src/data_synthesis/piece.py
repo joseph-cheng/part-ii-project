@@ -5,8 +5,11 @@ class Piece:
         Constructor for Piece
         """
         self.measures = []
+        self.sorted = False
 
     def sort(self):
+        if self.sorted:
+            return
         """
         Sorts the current notes by onset time
         """
@@ -14,6 +17,7 @@ class Piece:
             measure.sort()
 
         self.measures.sort(key=lambda measure: measure.onset)
+        self.sorted = True
 
     def from_parts(parts):
         """
@@ -37,8 +41,37 @@ class Piece:
 
         return piece
 
+
     def __repr__(self):
-        return self.measures.__repr__()
+        return "\n".join(map(lambda x: x.__repr__(), self.measures))
+
+    def get_notes(self):
+        """
+        generator for returning each note in a piece in order
+
+        returns: a generator for each Note in order
+        """
+        self.sort()
+        for measure in self.measures:
+            for note in measure.notes:
+                yield note
+
+    def convert_to_seconds(self):
+        """
+        Converts timing in the piece's measures and notes into seconds
+
+        returns: nothing
+        """
+
+        self.sort()
+
+        last_measure = None
+
+        for measure in self.measures:
+            measure.convert_to_seconds(last_measure)
+            last_measure = measure
+
+        sorted = False
 
 class Part:
 
@@ -92,7 +125,8 @@ class Measure:
         note: Note object to add
         """
 
-        self.notes.append(note)
+        if note != None:
+            self.notes.append(note)
         self.last_added_note = note
 
     def get_last_added_note(self):
@@ -101,13 +135,33 @@ class Measure:
         """
         return self.last_added_note
 
+    def convert_to_seconds(self, previous_measure):
+        """
+        Assuming the previous measure has been converted to seconds (if this is not the initial measure), convert this measure's timing to seconds
+
+        previous_measure: previous Measure object
+        """
+
+        if previous_measure == None:
+            self.onset = 0
+        else:
+            self.onset = previous_measure.onset + previous_measure.length
+
+        self.length = self.length * (1/self.tempo) * 60
+
+        for note in self.notes:
+            note.convert_to_seconds(self)
+
+
+
+
     def sort(self):
         """
         Sorts notes in the measure by time
         """
 
-        self.notes.sort(key=lambda note: note.onset)
+        self.notes.sort(key=lambda note: (note.onset, note.duration))
 
     def __repr__(self):
-        return self.notes.__repr__()
+        return f"Measure onset: {self.onset}\nMeasure length: {self.length}\n{self.notes.__repr__()}\n"
 
