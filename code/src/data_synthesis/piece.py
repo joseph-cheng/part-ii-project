@@ -1,3 +1,5 @@
+import copy
+
 class Piece:
 
     def __init__(self):
@@ -6,6 +8,7 @@ class Piece:
         """
         self.measures = []
         self.sorted = False
+        self.in_seconds = False
 
     def sort(self):
         if self.sorted:
@@ -42,6 +45,18 @@ class Piece:
         return piece
 
 
+    def calculate_tempo(self):
+        """
+        Calculates `global' tempo, a little rudimentary currently
+
+        returns: some measure of the global tempo of a piece
+        """
+
+        # currently unweighted average of tempo of each measure
+        return sum(measure.tempo for measure in self.measures)/len(self.measures)
+
+
+
     def __repr__(self):
         return "\n".join(map(lambda x: x.__repr__(), self.measures))
 
@@ -60,18 +75,65 @@ class Piece:
         """
         Converts timing in the piece's measures and notes into seconds
 
-        returns: nothing
+        returns: a new piece object with timings in seconds
         """
 
-        self.sort()
+        new_piece = copy.deepcopy(self)
+
+        new_piece.sort()
 
         last_measure = None
 
-        for measure in self.measures:
+        for measure in new_piece.measures:
             measure.convert_to_seconds(last_measure)
             last_measure = measure
 
-        sorted = False
+        new_piece.in_seconds = True
+        return new_piece
+
+    def apply_profile(self, profile):
+        """
+        Convert to seconds (if not already), and apply a pianist profile to slightly modify the performance of a piece
+
+        profile: Profile object 
+
+        returns: a new piece with modified attributes based on the pianist profile
+        """
+
+        piece = None
+        if not(self.in_seconds):
+            piece = self.convert_to_seconds()
+        else:
+            piece = copy.deepcopy(self)
+
+        piece.sort()
+
+        piece_length = piece.measures[-1].onset + piece.measures[-1].length
+        piece_tempo = piece.calculate_tempo()
+
+        for measure in piece.measures:
+            normalized_onset = measure.onset / piece_length
+            # tempo envelope gives us a scaling factor, which we multiply by the `global' tempo of our piece
+            measure.tempo = profile.tempo_envelope(normalized_onset) * piece_tempo
+
+        # now we have applied tempo envelope, so we apply amplitude and onset offset distributions
+
+        for measure in piece.measures:
+            for note in measure.notes:
+                note.velocity = profile.amplitude_distribution()
+                note.onset += profile.onset_distribution()
+
+        piece.sorted = False
+        return piece
+
+
+
+
+
+
+
+
+
 
 class Part:
 

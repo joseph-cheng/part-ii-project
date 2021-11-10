@@ -43,7 +43,7 @@ class Note:
         duration: number of divisions in the particular measure that represents duration
         onset: number of divisions in particular measure since start of measure where note should start
         voice: what mxml voice this note is in
-        velocity: number from 0-100 that is the MIDI velocity of this note
+        velocity: number from 0-127 that is the MIDI velocity of this note
         tied_from: a previous note that this note was tied from
         tie_type: the type of tie, if this note is tied
         chorded_with: the previous note that this note is in a chord with

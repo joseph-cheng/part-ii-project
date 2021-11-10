@@ -1,17 +1,19 @@
 from piece import Piece
+from profile import Profile
 from mxl_parser import parse_mxml
 from note import Note
 import numpy as np
 import fluidsynth
 import scipy.io.wavfile
 
-def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
+def generate_audio(mxml_filename, soundfont_filename, wavfile_output, profile):
     """
     Generates audio from a mxml filename and writes the output to a wavfile
 
     mxml_filename: path to a mxml file
     soundfont_filename: path to a soundfont to use for fluidsynth
     wavfile_output: filename to write the resulting wavfile to
+    profile: Profile object corresponding to a particular pianist profile
 
     returns: nothing
     """
@@ -20,9 +22,10 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
     SAMPLE_RATE = 44100
 
     piece = parse_mxml(mxml_filename)
-    piece.convert_to_seconds()
-    piece.sort()
+    piece = piece.convert_to_seconds()
+    piece = piece.apply_profile(profile)
 
+    piece.sort()
 
     samples = []
     piano = fluidsynth.Synth()
@@ -82,4 +85,10 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output):
 
     scipy.io.wavfile.write(wavfile_output, SAMPLE_RATE, samples)
 
-generate_audio("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/scores/chopin__trois_valses.xml", "/home/joe/Documents/cambridge/ii/part-ii-project/code/res/soundfonts/yamaha_grand.sf2", "output.wav" )
+profile = Profile()
+
+profile.tempo_envelope = lambda t: (np.sin(10 * np.pi * t) / 5) + 1
+profile.set_normal_onset_distribution(0, 0.02)
+profile.set_binom_amplitude_distribution(100)
+
+generate_audio("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/scores/chopin__trois_valses.xml", "/home/joe/Documents/cambridge/ii/part-ii-project/code/res/soundfonts/yamaha_grand.sf2", "output.wav", profile)
