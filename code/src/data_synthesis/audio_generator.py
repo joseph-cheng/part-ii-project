@@ -21,12 +21,14 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output, profile):
 
     SAMPLE_RATE = 44100
 
+    print("Parsing file...")
     piece = parse_mxml(mxml_filename)
-    piece = piece.convert_to_seconds()
+    print("Applying pianist profile...")
     piece = piece.apply_profile(profile)
 
     piece.sort()
 
+    print("Generating audio...")
     samples = []
     piano = fluidsynth.Synth()
     piano_id = piano.sfload(soundfont_filename)
@@ -43,6 +45,8 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output, profile):
 
     while next_note != None or len(notes_playing) > 0:
         # check if there is a noteoff or noteon event next
+        print(next_note)
+
         if next_note == None or ((next_note.onset - current_position) > min([pair[1] for pair in notes_playing], default=9e99)):
             # noteoff event next
 
@@ -87,8 +91,8 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output, profile):
 
 profile = Profile()
 
-profile.tempo_envelope = lambda t: (np.sin(10 * np.pi * t) / 5) + 1
-profile.set_normal_onset_distribution(0, 0.02)
+profile.tempo_envelope = lambda t: (np.cos(5 * np.pi * t) / 2) + 1
+profile.set_normal_onset_distribution(0, 0.005)
 profile.set_binom_amplitude_distribution(100)
 
 generate_audio("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/scores/chopin__trois_valses.xml", "/home/joe/Documents/cambridge/ii/part-ii-project/code/res/soundfonts/yamaha_grand.sf2", "output.wav", profile)

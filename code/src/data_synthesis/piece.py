@@ -100,11 +100,7 @@ class Piece:
         returns: a new piece with modified attributes based on the pianist profile
         """
 
-        piece = None
-        if not(self.in_seconds):
-            piece = self.convert_to_seconds()
-        else:
-            piece = copy.deepcopy(self)
+        piece = copy.deepcopy(self)
 
         piece.sort()
 
@@ -117,6 +113,7 @@ class Piece:
             measure.tempo = profile.tempo_envelope(normalized_onset) * piece_tempo
 
         # now we have applied tempo envelope, so we apply amplitude and onset offset distributions
+        piece = piece.convert_to_seconds()
 
         for measure in piece.measures:
             for note in measure.notes:
