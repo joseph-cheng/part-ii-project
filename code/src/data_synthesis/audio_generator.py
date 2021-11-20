@@ -91,8 +91,8 @@ def generate_audio(mxml_filename, soundfont_filename, wavfile_output, profile):
 
 profile = Profile()
 
-profile.tempo_envelope = lambda t: (np.cos(5 * np.pi * t) / 2) + 1
-profile.set_normal_onset_distribution(0, 0.005)
+profile.tempo_envelope = lambda t: (np.cos(5 * np.pi * t) / 2) + 1.5
+profile.set_normal_onset_distribution(0, 0.01)
 profile.set_binom_amplitude_distribution(100)
 
 generate_audio("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/scores/chopin__trois_valses.xml", "/home/joe/Documents/cambridge/ii/part-ii-project/code/res/soundfonts/yamaha_grand.sf2", "output.wav", profile)
