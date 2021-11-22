@@ -166,6 +166,18 @@ def calculate_beats(audio):
     return np.array([audio.to_seconds(beat) for beat in beats])
 
 
+def tempo_variation_metric(audio):
+    """
+    Calculates the tempo variation over time metric
+
+    audio: Audio object for which to calculate the metric for
+
+    returns: 1D np array of the first order difference between beat times
+    """
+
+    beat_times = calculate_beats(audio)
+
+    return np.diff(beat_times)
 
 
 
