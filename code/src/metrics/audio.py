@@ -5,4 +5,10 @@ class Audio:
         self.sample_rate = sample_rate
 
     def get_duration(self):
-        return len(self.signal)/self.sample_rate
+        return self.to_seconds(len(self.signal))
+
+    def to_seconds(self, num_samples):
+        return num_samples/self.sample_rate
+
+    def to_samples(self, num_seconds):
+        return num_seconds * self.sample_rate

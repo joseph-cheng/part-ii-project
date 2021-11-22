@@ -100,3 +100,72 @@ def calculate_global_tempo(audio, onset_function=None, tempo_bias=0.5, envelope_
             best_tempo = 60/tau
 
     return best_tempo
+
+def beat_consistency(current_t, previous_t, ideal_spacing):
+    delta_t = current_t - previous_t
+    return -(np.log(delta_t / ideal_spacing) ** 2)
+
+def calculate_beats(audio):
+    """
+    Calculates beat onset times using techniques developed by Ellis
+
+    audio: an Audio object that contains the signal to calculate the beat onsets for
+
+    returns: a sorted 1d np array of beat onset times in seconds
+    """
+
+    # alpha
+    WEIGHTING = 100
+
+    # initialise C* and P*
+    score_array = np.full(len(audio.signal), 0)
+    backtrace_array = np.full(len(audio.signal), 0)
+
+    onset_function = calculate_onset_func(audio)
+    global_tempo = calculate_global_tempo(audio, onset_function=onset_function)
+    ideal_spacing = 60/global_tempo
+    ideal_spacing_samples = audio.to_samples(ideal_spacing)
+
+    for sample_num in range(1, len(audio.signal)):
+        t = audio.to_seconds(sample_num)
+
+        onset_value = onset_function[sample_num]
+        range_start = max(0, sample_num - ideal_spacing_samples * 2)
+        range_stop = max(0, sample_num - ideal_spacing_samples / 2) + 1
+
+        best_score = -9e999
+        best_tau = -1
+        # do the max/argmax
+        for potential_beat in range(range_start, range_stop):
+            potential_beat = audio.to_seconds(previous_beat)
+            score = WEIGHTING * beat_consistency(t, potential_beat_seconds, ideal_spacing)
+            score += score_Array[potential_beat]
+            if score > best_score:
+                best_score = score
+                best_tau = potential_beat
+
+        score_array[sample_num] = best_score
+        backtrace_array[sample_num] = best_tau
+
+    # now we have done the dynamic programming, just need to backtrace
+
+    # so we first find the final beat, time, the highest scoring t
+
+    final_beat_time = np.argmax(score_array)
+
+    beats = [final_beat_time]
+
+    current_beat = final_beat_time
+
+    # while still need to backtrace
+    while current_beat != 0:
+        current_beat = backtrace_array[current_beat]
+        beats.append(current_beat)
+
+    beats.reverse()
+    return np.array([audio.to_seconds(beat) for beat in beats])
+
+
+
+
+
