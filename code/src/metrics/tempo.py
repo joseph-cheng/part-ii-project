@@ -16,11 +16,17 @@ class OnsetFunction:
     def index_time(self, t):
         return self.data[self.time_to_windows(t)]
 
+    def index_window(self, w):
+        return self.data[w]
+
     def samples_to_windows(self, samples):
         return self.time_to_windows(samples / self.sample_rate)
 
     def time_to_windows(self, t):
         return int(t / self.window_advance)
+
+    def windows_to_time(self, w):
+        return self.window_advance * w
 
     def delay_samples(self, num_samples):
         if num_samples > 0:
