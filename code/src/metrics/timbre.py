@@ -40,7 +40,7 @@ def spectrum_to_mel_bands(spectrum, sample_rate, num_filters=40):
     hertz_bands = mel_to_hertz(mel_bands)
 
     # now we create our filter bank
-    filter_bank = np.zeros((num_filters, int(sample_rate/2)))
+    filter_bank = np.zeros((num_filters, len(spectrum)))
     for i, band in enumerate(hertz_bands[1:-1]):
         band_i = i + 1
         previous_band = hertz_bands[band_i - 1]

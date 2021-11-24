@@ -15,7 +15,7 @@ def note_offset_metric(audio, tempo_variation=None):
         tempo_variation = tempo.calculate_tempo_variation(audio)
 
     # TODO: memoise
-    onset_function = calculate_onset_func(audio)
+    onset_function = tempo.calculate_onset_func(audio)
 
     moving_average_window = 4
     tempo_variation_average = moving_average(tempo_variation, moving_average_window)
