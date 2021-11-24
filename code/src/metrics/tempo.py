@@ -4,6 +4,34 @@ import scipy.signal.windows
 import timbre
 
 
+class OnsetFunction:
+    def __init__(self, data, window_advance, sample_rate):
+        self.data = data
+        self.window_advance = window_advance
+        self.sample_rate = sample_rate
+
+    def index_samples(self, samples):
+        return self.data[self.samples_to_windows(samples)]
+
+    def index_time(self, t):
+        return self.data[self.time_to_windows(t)]
+
+    def samples_to_windows(self, samples):
+        return self.time_to_windows(samples / self.sample_rate)
+
+    def time_to_windows(self, t):
+        return int(t / self.window_advance)
+
+    def delay_samples(self, num_samples):
+        if num_samples > 0:
+            return OnsetFunction(self.data[self.samples_to_windows(num_samples):], self.window_advance, self.sample_rate)
+        else:
+            return OnsetFunction(self.data[:-self.samples_to_windows(abs(num_samples))], self.window_advance, self.sample_rate)
+
+    def dot(self, other):
+        return np.dot(self.data, other.data)
+
+
 def calculate_onset_func(audio, window_size=0.032, window_advance=0.004):
     """
     Calculates the onset function as used by Ellis for beat tracking
@@ -61,7 +89,7 @@ def calculate_onset_func(audio, window_size=0.032, window_advance=0.004):
     gaussian_window = scipy.signal.windows.gaussian(
         int(envelope_length * audio.sample_rate), int(envelope_sigma * audio.sample_rate))
 
-    return np.convolve(onset_array, gaussian_window)
+    return OnsetFunction(np.convolve(onset_array, gaussian_window), window_advance, audio.sample_rate)
 
 
 def calculate_global_tempo(audio, onset_function=None, tempo_bias=0.5, envelope_width=1.4):
@@ -91,19 +119,23 @@ def calculate_global_tempo(audio, onset_function=None, tempo_bias=0.5, envelope_
     # iterate over possible delays from 0 to min_tempo samples through
     for tau_samples in range(0, 60/min_tempo * audio.sample_rate):
         tau = tau_samples / audio.sample_rate
-        delayed_onset = onset_function[tau_samples:]
+        delayed_onset = onset_function.delay_samples(tau_samples)
+        reverse_delayed_onset = onset_function.delay_samples(-tau_samples)
 
         # calculate weighted correlation
-        correlation = weighting_func(tau) * np.dot(delayed_onset, onset_function[:-tau_samples])
+        correlation = weighting_func(
+            tau) * delayed_onset.dot(reverse_delayed_onset)
         if correlation > best_correlation:
             best_correlation = correlation
             best_tempo = 60/tau
 
     return best_tempo
 
+
 def beat_consistency(current_t, previous_t, ideal_spacing):
     delta_t = current_t - previous_t
     return -(np.log(delta_t / ideal_spacing) ** 2)
+
 
 def calculate_beats(audio):
     """
@@ -129,7 +161,7 @@ def calculate_beats(audio):
     for sample_num in range(1, len(audio.signal)):
         t = audio.to_seconds(sample_num)
 
-        onset_value = onset_function[sample_num]
+        onset_value = onset_function.index_samples(sample_num)
         range_start = max(0, sample_num - ideal_spacing_samples * 2)
         range_stop = max(0, sample_num - ideal_spacing_samples / 2) + 1
 
@@ -138,7 +170,8 @@ def calculate_beats(audio):
         # do the max/argmax
         for potential_beat in range(range_start, range_stop):
             potential_beat = audio.to_seconds(previous_beat)
-            score = WEIGHTING * beat_consistency(t, potential_beat_seconds, ideal_spacing)
+            score = WEIGHTING * \
+                beat_consistency(t, potential_beat_seconds, ideal_spacing)
             score += score_Array[potential_beat]
             if score > best_score:
                 best_score = score
@@ -166,7 +199,7 @@ def calculate_beats(audio):
     return np.array([audio.to_seconds(beat) for beat in beats])
 
 
-def tempo_variation_metric(audio):
+def calculate_tempo_variation(audio):
     """
     Calculates the tempo variation over time metric
 
@@ -178,6 +211,3 @@ def tempo_variation_metric(audio):
     beat_times = calculate_beats(audio)
 
     return np.diff(beat_times)
-
-
-

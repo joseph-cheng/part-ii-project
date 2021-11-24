@@ -11,4 +11,4 @@ class Audio:
         return num_samples/self.sample_rate
 
     def to_samples(self, num_seconds):
-        return num_seconds * self.sample_rate
+        return int(num_seconds * self.sample_rate)
