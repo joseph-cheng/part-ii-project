@@ -180,7 +180,7 @@ def calculate_beats(audio, advance=0.004):
 
 
     # alpha
-    WEIGHTING = 10
+    WEIGHTING = 5
 
     # initialise C* and P*
     score_array = np.zeros(int(audio.get_duration() / advance))
