@@ -2,7 +2,7 @@ import util
 import scipy.fft
 import numpy as np
 
-def calculate_chroma_metric(audio, window_size=0.032, window_advance=0.004):
+def calculate_chroma_metric(audio, window_size=0.1, window_advance=0.025):
     """
     Calculates the pitch class profile or chroma metric of an audio signal
 
@@ -13,18 +13,21 @@ def calculate_chroma_metric(audio, window_size=0.032, window_advance=0.004):
     returns: a 12xn NP array containing a series of pitch class profiles for windows of the audio signal
     """
 
-    chroma_array = np.zeros((audio.get_duration() - window_size) / window_advance)
+    chroma_array = np.zeros((int((audio.get_duration() - window_size) / window_advance), 12))
     num_windows = len(chroma_array)
-    for window in num_windows:
-        window_start = window * window_advance * audio.sample_rate
-        window_end = (window * window_advance +
-                      window_size) * audio.sample_rate
+    for window in range(num_windows):
+        window_start = int(window * window_advance * audio.sample_rate)
+        window_end = int((window * window_advance +
+                      window_size) * audio.sample_rate)
 
         window_signal = audio.signal[window_start:window_end]
 
         chroma_array[window] = calculate_pitch_profile(window_signal, audio.sample_rate)
 
-    return chroma_array
+
+    # now we normalise
+    max_val = np.amax(chroma_array)
+    return chroma_array / max_val
 
 
 
@@ -50,6 +53,6 @@ def calculate_pitch_profile(signal, sample_rate):
         upper_frequency = int(2 ** ((pitch + 0.5 - 69)/12) * 440)
 
         for index in range(freq_to_index(lower_frequency), freq_to_index(upper_frequency)):
-            ret[pitch // 12] += spectrum[index]
+            ret[pitch % 12] += np.absolute(spectrum[index])
 
     return ret

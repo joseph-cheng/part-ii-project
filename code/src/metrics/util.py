@@ -1,6 +1,7 @@
-import scipy.wavfile
+import scipy.io.wavfile
 import numpy as np
 from audio import Audio
+import matplotlib.pyplot as plt
 
 def read_audio(wavfile_path):
     """
@@ -9,7 +10,7 @@ def read_audio(wavfile_path):
     returns: an Audio object containing the mono signal
     """
 
-    rate, data = scipy.wavfile.read(wavfile)
+    rate, data = scipy.io.wavfile.read(wavfile_path)
     if data.ndim > 1:
         # mix to mono
         data = np.mean(data, axis=1)
@@ -27,7 +28,7 @@ def moving_average(data, n):
     ret[n:] = ret[n:] - ret[:-n]
 
     # correctly take moving average for first n-2 elements
-    for k in range(n-1):
+    for k in range(min(n-1, len(data)-1)):
         ret[k] /= (k+1)
 
     ret[n-1:] = ret[n-1:] / n

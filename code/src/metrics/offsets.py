@@ -1,24 +1,23 @@
-import tempo
 import util
+import numpy as np
 
 
-def note_offset_metric(audio, tempo_variation=None):
+def calculate_offsets_metric(audio):
     """
     Calculates the note onset offset metric by using the tempo variation metric
 
     audio: an Audio object containing the signal to calculate the metric for
-    tempo_variation: the first order difference of beat times, so the distance between subsequent beats. can be precalculated since we will likely calculate this metric at another point
 
     returns: a 2D array of distances between expected beat times and actual note onsets, along with the strength of the onset
     """
-    if tempo_variation == None:
-        tempo_variation = tempo.calculate_tempo_variation(audio)
 
-    # TODO: memoise
-    onset_function = tempo.calculate_onset_func(audio)
+    beat_times = audio.get_beat_times()
+    tempo_variation = np.diff(beat_times)
+    onset_function = audio.get_onset_function()
 
     moving_average_window = 4
-    tempo_variation_average = moving_average(tempo_variation, moving_average_window)
+    print(beat_times)
+    tempo_variation_average = util.moving_average(tempo_variation, moving_average_window)
 
     # basically, take the moving average tempo, and search for the nearest highest onset value in a small window around the expected beat time based on the moving average tempo
     current_loc = 0
@@ -28,7 +27,7 @@ def note_offset_metric(audio, tempo_variation=None):
         current_loc += inter_onset_interval
         onset_loc, onset_strength = get_best_nearest_onset(onset_function, current_loc, onset_window_search_size)
         ret[i][0] = onset_loc
-        ret[i][1] = onset_stength
+        ret[i][1] = onset_strength
 
     return ret
 
@@ -57,4 +56,4 @@ def get_best_nearest_onset(onset_function, expected_beat_time, window_size):
             best_onset_value = onset_function.index_window(window)
 
     onset_location = onset_function.windows_to_time(best_window)
-    return (onset_location, best_onset_value)
+    return (onset_location - expected_beat_time, best_onset_value)
