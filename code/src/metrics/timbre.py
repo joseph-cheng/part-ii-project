@@ -62,6 +62,7 @@ def spectrum_to_mel_bands(spectrum, sample_rate, num_filters=40):
     for f in filter_bank:
         filtered_spectrums.append(f * spectrum)
 
+
     # now compute the mel filtered power spectra
     filtered_spectrums = np.array(filtered_spectrums)
 

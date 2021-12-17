@@ -13,13 +13,13 @@ class OnsetFunction:
         self.sample_rate = sample_rate
 
     def index_samples(self, samples):
-        return self.data[self.samples_to_windows(samples)]
+        return self.data[min(len(self.data)-1, self.samples_to_windows(samples))]
 
     def index_time(self, t):
-        return self.data[self.time_to_windows(t)]
+        return self.data[min(len(self.data)-1, self.time_to_windows(t))]
 
     def index_window(self, w):
-        return self.data[w]
+        return self.data[min(len(self.data)-1, w)]
 
     def samples_to_windows(self, samples):
         return self.time_to_windows(samples / self.sample_rate)
@@ -61,9 +61,14 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
     onset_array = np.zeros(
         int((audio.get_duration() - window_size) / window_advance))
 
+    mel_bands = 40
+
     num_windows = len(onset_array)
 
+
     audio = audio.resample(8000)
+
+    mel_spectrogram = np.zeros((len(onset_array), mel_bands))
 
     for window in range(num_windows):
 
@@ -74,29 +79,31 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
         window_signal = audio.signal[window_start:window_end]
         window_filter = scipy.signal.windows.hann(len(window_signal))
         window_signal = window_signal * window_filter
-        
 
         spectrum = scipy.fft.rfft(window_signal)
 
+
         power_spectrum = 1/len(window_signal) * (np.abs(spectrum) ** 2)
 
+
         mel_spectrum = timbre.spectrum_to_mel_bands(
-            power_spectrum, audio.sample_rate)
+            power_spectrum, audio.sample_rate, num_filters=mel_bands)
 
-        # normalise to 0dB max
-        # the paper does not specify what reference to convert to dB from, there are potentially other choices worth exploring
-        mel_spectrum_db = 10 * np.log10(mel_spectrum/max(mel_spectrum))
+        mel_spectrogram[window] = mel_spectrum
 
-        # take first order difference
-        mel_spectrum_db[mel_spectrum_db == -np.inf] =-60 
-        diff = np.diff(mel_spectrum_db)
 
-        # set negative values to 0
-        rectified_diff = diff.clip(min=0)
+    # normalise to 0dB max
+    # the paper does not specify what reference to convert to dB from, don't think it matters though
+    reference_point = np.amax(mel_spectrogram)
+    mel_spectrogram_db = 10 * np.log10(mel_spectrogram/reference_point)
 
-        onset_val = sum(rectified_diff)
+    # take first order difference
+    diff = np.diff(mel_spectrogram_db, axis=0)
 
-        onset_array[window] = onset_val
+    # set negative values to 0
+    rectified_diff = diff.clip(min=0)
+
+    onset_array = np.sum(rectified_diff, axis=1)
 
     highpass_filter = scipy.signal.butter(1, 0.4, btype="highpass", output="sos")
 
@@ -105,14 +112,23 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
     envelope_length = 0.020
 
     # just made this number up, might be better choices
-    envelope_sigma = 0.002
+    envelope_sigma = 0.008
 
     gaussian_window = scipy.signal.windows.gaussian(
-        int(envelope_length * audio.sample_rate), int(envelope_sigma * audio.sample_rate))
+        int(envelope_length / window_advance), int(envelope_sigma / window_advance))
+
+
+
 
     convolved_onsets = np.convolve(filtered_onsets, gaussian_window)
 
     normalized_onsets = convolved_onsets / np.std(convolved_onsets)
+
+    plt.plot(np.linspace(0, 1, len(audio.signal)), audio.signal/max(audio.signal))
+    plt.plot(np.linspace(0, 1, len(normalized_onsets)), normalized_onsets/max(normalized_onsets))
+    plt.show()
+
+
 
     onset_function = OnsetFunction(normalized_onsets, window_advance, audio.sample_rate)
 
@@ -123,7 +139,7 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
     return onset_function
 
 
-def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=1.4):
+def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=0.7):
     """
     Calculates an estimate of the global tempo of an audio signal, using the techniques outlined by Ellis, basically by calculating autocorrelation
 
@@ -143,6 +159,8 @@ def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=1.4):
     # tempo shouldn't go higher than 250
     min_tempo = 20
 
+    auto_correlation = np.zeros(int(60 / min_tempo * audio.sample_rate))
+
     # now we iterate over potential tempos and find hte best
     best_correlation = np.NINF
     best_tempo = -1
@@ -152,13 +170,22 @@ def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=1.4):
         delayed_onset = onset_function.delay_samples(tau_samples)
         reverse_delayed_onset = onset_function.delay_samples(-tau_samples)
 
+
         # calculate weighted correlation
         correlation = weighting_func(tau) * delayed_onset.dot(reverse_delayed_onset)
+
+
+        auto_correlation[tau_samples] = correlation
 
         if correlation > best_correlation:
             
             best_correlation = correlation
             best_tempo = 60/tau
+
+
+    print(best_tempo)
+    plt.plot(auto_correlation)
+    plt.show()
 
     return best_tempo
 
@@ -188,7 +215,7 @@ def calculate_beats(audio, advance=0.004):
 
     onset_function = audio.get_onset_function()
 
-    global_tempo = calculate_global_tempo(audio)
+    global_tempo = calculate_global_tempo(audio,)
     ideal_spacing = 60/global_tempo
     ideal_spacing_windows = int(ideal_spacing / advance)
     for window in range(1, int((audio.get_duration() / advance))):
