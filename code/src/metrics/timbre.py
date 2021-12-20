@@ -42,9 +42,7 @@ def spectrum_to_mel_bands(spectrum, sample_rate, num_filters=40):
     mel_bands = np.linspace(lowest_freq, highest_freq, num=num_filters+2)
     hertz_bands = mel_to_hertz(mel_bands).astype(int)
 
-
     bins = np.floor((len(spectrum) + 1) * hertz_bands / sample_rate)
-
 
     # now we create our filter bank
     filter_bank = np.zeros((num_filters, len(spectrum)))
@@ -62,10 +60,8 @@ def spectrum_to_mel_bands(spectrum, sample_rate, num_filters=40):
     for f in filter_bank:
         filtered_spectrums.append(f * spectrum)
 
-
     # now compute the mel filtered power spectra
     filtered_spectrums = np.array(filtered_spectrums)
-
 
     filter_bank_energies = np.sum(filtered_spectrums, axis=1)
 
@@ -95,6 +91,7 @@ def calculate_mfccs(signal, sample_rate):
 
     return mfccs
 
+
 def calculate_timbre_metric(audio, window_size=0.3):
     """
     Calculates the timbre metric of a signal. It does this by calculating MFCCs of a particular window at note onsets using beat onsets
@@ -121,4 +118,23 @@ def calculate_timbre_metric(audio, window_size=0.3):
     return timbre_array
 
 
+def timbre_metric_similarity(audio1, audio2, metric1, metric2):
+    """
+    Calculates the similarity between two timbre metrics.
 
+    audio1: Audio object containing the signal used to compute metric1
+    audio2: Audio object containing the signal used to compute metric2
+    metric1: metric computed by calculate_timbre_metric function
+    metric2: metric computed by calculate_timbre_metric function
+
+    returns: similarity score between 0 and 1 of the similarity of the two metrics
+    """
+
+    # since the timbre metric is calculated at times where there are note onsets, we do not need to perform alignment (the assumption is that the beats already correspond, although this might not necessarily be true if tempos are detected at 2x)
+
+    # To calculate similarity, we take the sum of squared errors of each mfcc, and the errors between two mfccs is the sum of the squared errors between each spectrum bin
+
+    # TODO: handle alignment
+    mfcc_errors = np.sum(metric1 - metric, axis=1)
+
+    squared_errors_sum = np.sum((

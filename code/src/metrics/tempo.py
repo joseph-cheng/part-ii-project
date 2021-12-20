@@ -124,9 +124,6 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
 
     normalized_onsets = convolved_onsets / np.std(convolved_onsets)
 
-    plt.plot(np.linspace(0, 1, len(audio.signal)), audio.signal/max(audio.signal))
-    plt.plot(np.linspace(0, 1, len(normalized_onsets)), normalized_onsets/max(normalized_onsets))
-    plt.show()
 
 
 
@@ -183,9 +180,9 @@ def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=0.7):
             best_tempo = 60/tau
 
 
+    
     print(best_tempo)
-    plt.plot(auto_correlation)
-    plt.show()
+
 
     return best_tempo
 
