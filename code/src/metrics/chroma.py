@@ -22,12 +22,14 @@ def calculate_chroma_metric(audio, window_size=0.1, window_advance=0.025):
 
         window_signal = audio.signal[window_start:window_end]
 
+        #TODO: maybe apply hanning window?
+
         chroma_array[window] = calculate_pitch_profile(window_signal, audio.sample_rate)
 
 
     # now we normalise
     max_val = np.amax(chroma_array)
-    return chroma_array / max_val
+    return (window_advance, chroma_array / max_val)
 
 
 
@@ -56,3 +58,58 @@ def calculate_pitch_profile(signal, sample_rate):
             ret[pitch % 12] += np.absolute(spectrum[index])
 
     return ret
+
+def chroma_metric_similarity(audio1, audio2, metric1, metric2):
+    """
+    Calculates the similarity between two chroma metrics
+
+    audio1: audio signal corresponding to metric1 (need for alignment) 
+    audio2: audio signal corresponding to metric2 (need for alignment)
+    metric1: an output of the calculate_chroma_metric function
+    metric2: another output of the calculate_chroma_metric function
+
+    returns: a number between 0 and 1 representing the similarity between the two metrics
+    """
+
+    # again, like timbre/dynamics, we take the sum of squared errors, where the error between two chroma profiles is the sum of the squared errors of each of the pitch classes
+
+    # Furthermore, since the two signals might not be aligned, we find the first beat and align to that, and truncate the end
+
+    first_beat1 = audio1.get_beat_times()[1]
+    first_beat2 = audio2.get_beat_times()[1]
+
+    # now we truncate the start of each signal up until the first beat
+
+    window_advance1, chroma_array1 = metric1
+    window_advance2, chroma_array2 = metric2
+
+    starting_time_windows1 = first_beat1 // window_advance1
+    starting_time_windows2 = first_beat2 // window_advance2
+
+    chroma_array1 = chroma_array1[starting_time_windows1:]
+    chroma_array2 = chroma_array2[starting_time_windows2:]
+
+    # now we truncate the end
+
+    truncated_length = min(len(chroma_array1), len(chroma_array2))
+    chroma_array1 = chroma_array1[:truncated_length]
+    chroma_array2 = chroma_array2[:truncated_length]
+
+    # then we normalise to the highest value between the two 
+    highest_value = max(np.amax(chroma_array1), np.amax(chroma_array2))
+    chroma_array1 = chroma_array1 / highest_value
+    chroma_array2 = chroma_array2 / highest_value
+
+    # now calculate the error within each pcp
+    pcp_errors = np.sum((chroma_array1 - chroma_array2) ** 2, axis=1)
+
+    squared_errors_sum = np.sum(pcp_errors)
+
+    # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
+
+    return np.exp(-squared_errors_sum)
+
+    
+
+
+

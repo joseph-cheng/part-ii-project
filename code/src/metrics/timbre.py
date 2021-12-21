@@ -130,11 +130,19 @@ def timbre_metric_similarity(audio1, audio2, metric1, metric2):
     returns: similarity score between 0 and 1 of the similarity of the two metrics
     """
 
-    # since the timbre metric is calculated at times where there are note onsets, we do not need to perform alignment (the assumption is that the beats already correspond, although this might not necessarily be true if tempos are detected at 2x)
+    #TODO: normalisation? might not need to
+
+    # since the timbre metric is calculated at times where there are note onsets, the assumption is that the beats already correspond, although this might not necessarily be true
 
     # To calculate similarity, we take the sum of squared errors of each mfcc, and the errors between two mfccs is the sum of the squared errors between each spectrum bin
 
-    # TODO: handle alignment
-    mfcc_errors = np.sum(metric1 - metric, axis=1)
+    # here we naively align the two metrics, hopefully this shouldn't make a difference because the metrics should be aligned, but in the case they are not then we should probably do something smarter
+    timbre_array1 = metric1[:min(len(metric1), len(metric2))]
+    timbre_array2 = metric2[:min(len(metric1), len(metric2))]
+    mfcc_errors = np.sum((timbre_array1 - timbre_array2) ** 2, axis=1)
 
-    squared_errors_sum = np.sum((
+    squared_errors_sum = np.sum(mfcc_errors)
+
+    # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
+
+    return np.exp(-squared_errors_sum)

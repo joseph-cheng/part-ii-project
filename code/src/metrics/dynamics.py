@@ -43,8 +43,8 @@ def dynamics_metric_similarity(audio1, audio2, metric1, metric2):
 
     audio1: audio signal corresponding to metric1 (need for alignment) 
     audio2: audio signal corresponding to metric2 (need for alignment)
-    metric1: an output of the calculate_dynamic_metric function
-    metric2: another output of the calculate_dynamic_metric function
+    metric1: an output of the calculate_dynamics_metric function
+    metric2: another output of the calculate_dynamics_metric function
 
     returns: a number between 0 and 1 representing the similarity between the two metrics
     """
@@ -53,7 +53,7 @@ def dynamics_metric_similarity(audio1, audio2, metric1, metric2):
 
     # we also normalise the metrics to the max dynamic meausred by the two metrics, because we care about relative difference
 
-    # unfortunately, the two signals might not be aligned, so we find the first beat time after 0 and align to this point instead
+    # unfortunately, the two signals might not be aligned, so we find the first beat time after 0 and align to this point instead, and we truncate to the smaller array
 
     first_beat1 = audio1.get_beat_times()[1]
     first_beat2 = audio2.get_beat_times()[1]
@@ -68,6 +68,13 @@ def dynamics_metric_similarity(audio1, audio2, metric1, metric2):
 
     power_array1 = power_array1[starting_time_windows1:]
     power_array2 = power_array2[starting_time_windows2:]
+
+    # now we truncate the end off
+
+    truncated_length = min(len(power_array1), len(power_array2))
+
+    power_array1 = power_array1[:truncated_length]
+    power_array2 = power_array2[:truncated_length]
 
     # normalisation
     highest_value = max(max(power_array1), max(power_array2))
