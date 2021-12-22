@@ -8,7 +8,7 @@ def calculate_offsets_metric(audio):
 
     audio: an Audio object containing the signal to calculate the metric for
 
-    returns: a 2D array of distances between expected beat times and actual note onsets, along with the strength of the onset
+    returns: a 2D array of distances between expected beat times and actual note onsets, along with the strength of the onset and the expected beat time
     """
 
     beat_times = audio.get_beat_times()
@@ -22,12 +22,13 @@ def calculate_offsets_metric(audio):
     # basically, take the moving average tempo, and search for the nearest highest onset value in a small window around the expected beat time based on the moving average tempo
     current_loc = 0
     onset_window_search_size = 0.2
-    ret = np.zeros((len(tempo_variation_average), 2))
+    ret = np.zeros((len(tempo_variation_average), 3))
     for i, inter_onset_interval in enumerate(tempo_variation_average):
         current_loc += inter_onset_interval
         onset_loc, onset_strength = get_best_nearest_onset(onset_function, current_loc, onset_window_search_size)
         ret[i][0] = onset_loc
         ret[i][1] = onset_strength
+        ret[i][2] = current_loc
 
     return ret
 
@@ -57,3 +58,38 @@ def get_best_nearest_onset(onset_function, expected_beat_time, window_size):
 
     onset_location = onset_function.windows_to_time(best_window)
     return (onset_location - expected_beat_time, best_onset_value)
+
+def offsets_metric_similarity(audio1, audio2, metric1, metric2):
+    """
+    Calculates the similarity between two offsets metrics.
+
+    audio1: Audio object containing the signal used to compute metric1
+    audio2: Audio object containing the signal used to compute metric2
+    metric1: metric computed by calculate_offsets_metric function
+    metric2: metric computed by calculate_offsets_metric function
+
+    returns: similarity score between 0 and 1 of the similarity of the two metrics
+    """
+
+    # To calculate similarity, for each expected beat in the shorter metric, we find the closest one in the other metric, and find the squared error between the onset offset and the onset strength
+
+    shorter_metric = metric1 if len(metric1) < len(metric2) else metric2
+    longer_metric = metric1 if len(metric1) >= len(metric2) else metric2
+
+    squared_errors_sum = 0
+    for onset_offset1, onset_strength1, beat_time1 in shorter_metric:
+        closest = None
+        # now find the closest beat
+        for onset_offset2, onset_strength2, beat_time2 in longer_metric:
+            if closest == None or abs(closest[2] - beat_time1) > abs(beat_time2 - beat_time1):
+                closest = (onset_offset2, onset_strength2, beat_time2)
+
+        squared_errors_sum += (closest[0] - onset_offset1) ** 2 + (closest[1] - onset_strength1) ** 2
+
+
+    # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
+
+    return np.exp(-squared_errors_sum)
+
+
+

@@ -272,3 +272,31 @@ def calculate_tempo_metric(audio):
     print(beat_times)
 
     return np.diff(beat_times)
+
+def tempo_metric_similarity(audio1, audio2, metric1, metric2):
+    """
+    Calculates the similarity between two tempo metrics.
+
+    audio1: Audio object containing the signal used to compute metric1
+    audio2: Audio object containing the signal used to compute metric2
+    metric1: metric computed by calculate_timbre_metric function
+    metric2: metric computed by calculate_timbre_metric function
+
+    returns: similarity score between 0 and 1 of the similarity of the two metrics
+    """
+
+    # To compute similarity, we will just naively take sum of the squared errors, might be a smarter way to do this
+
+    # again we truncate to minimum length in case they are different sizes
+
+    beat_times1 = metric1[:min(len(metric1), len(metric2))]
+    beat_times2 = metric2[:min(len(metric1), len(metric2))]
+
+    squared_errors_sum = np.sum((beat_times1 - beat_times2) ** 2)
+
+    # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
+
+    return np.exp(-squared_errors_sum)
+
+    
+
