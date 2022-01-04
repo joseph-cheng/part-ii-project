@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{parskip}
+
+\usepackage[margin=1.0in]{geometry}
+
+\begin{document}
+\section*{Information}
+
+\begin{tabular}{ll}
+    
+  \textbf{Name: }&Joseph Cheng \\
+
+  \textbf{Email address: }&jac303@cam.ac.uk \\
+
+  \textbf{Project title: }&Identifying Pianists through Audio of a Performance \\
+
+  \textbf{Supervisor: }&Dr John K. Fawcett \\
+
+  \textbf{Director of Studies: }&Dr Sergei Taraskin \\
+
+  \textbf{Overseers: }&Dr Amanda Prorok \& Proj. Frank Stajano
+\end{tabular}
+
+\section*{Progress}
+
+The project is currently on schedule and all milestones have been met up to this point.
+
+There were some difficulties experienced in implementing the \textit{Tempo variation over time} metric, and due to this the slack period allotted was used to implement the metric similarity calculators, and so no work on extensions has been completed.
+
+Data collection has begun and the data collected is probably sufficient to demonstrate success of the project (5 pianists have performed 4 pieces twice), although there is room for more data collection if time permits.
+
+The data and systems have been tested in an ad-hoc manner by applying the systems to some sample data, and outputs of the system align reasonably with what I expect, which provides confidence that the techniques implemented will work.
+
+Overall, all of the core deliverables have been implemented. Data synthesis is possible and accurate performances can be generated from the combination of a MusicXML score and a piano soundfont, although this module is now mostly defunct given that real data has been collected (although it proved invaluable for testing early versions of the metric calculators). Each of the metric calculators has been completed and provide reasonable results: for example the \textit{Dynamics over time} metric generates values that represent quietness in periods of quiet within the piece, and generates values that represent loudness in periods of loud throughout the piece. The only metric calculator that has not been verified in this manner is the \textit{Timbre extraction} metric calculator, where it is hard to infer the meaning of generated values on the perceived audio signal, although quantifying timbre is a known hard problem within computer music. Metric similarity has also been completed, and works for all metrics through some mean squared error calculation over time, with some work done to align the two metrics beforehand.
+
+
+
+
+    
+\end{document}
