@@ -1,0 +1,53 @@
+\documentclass[oneside, a4paper,12pt]{book}
+
+\usepackage{standalone}
+\usepackage{import}
+\usepackage{dissertationstyle}
+
+\bibliography{personal}
+
+
+%% title metadata
+
+
+\title{\textbf{Identifying Pianists through Audio of a Performance}}
+\author{Computer Science Tripos -- Part II \\ \\
+        St Catharine's College}
+
+\begin{document}
+%% title
+\frontmatter
+\import{./}{title.tex}
+%\maketitle
+
+
+
+%% declaration of originality
+\import{./}{declaration.tex}
+
+%% proforma
+\chapter*{Proforma}
+\import{./}{proforma.tex}
+
+
+
+%% contents
+\tableofcontents
+
+
+%% actual content
+\mainmatter
+
+%% introduction
+\chapter{Introduction}
+\import{introduction/}{introduction.tex}
+
+
+\backmatter
+
+\printbibliography
+
+
+    
+\end{document}
+

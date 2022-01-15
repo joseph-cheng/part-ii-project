@@ -1,0 +1,26 @@
+\ProvidesPackage{dissertationstyle}
+
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\usepackage{biblatex}
+\usepackage{parskip}
+\usepackage[margin=1.0in]{geometry}
+\usepackage{fancyhdr}
+
+\newcommand*{\resetfigpath}[1]{
+  \graphicspath{{#1/images/}}
+  \
+}
+
+\fancypagestyle{titlepagestyle}
+{
+  \fancyhead[R]{\textbf{Joseph Cheng}}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+
+

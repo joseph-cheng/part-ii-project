@@ -16,3 +16,4 @@
 __pycache__/
 *.sf2
 *.wav
+*.toc

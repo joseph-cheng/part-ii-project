@@ -1,0 +1,34 @@
+\documentclass[crop=false]{standalone}
+
+\usepackage{dissertationstyle}
+
+\begin{document}
+  \begin{tabular}{ll}
+    Candidate Number: &\textbf{TODO} \\
+    Title: &\textbf{Identifying Pianists through Audio of a Performance} \\
+    Examination: &\textbf{Computer Science Tripos -- Part II} \\
+    Year: &\textbf{2022} \\
+    Word Count: &\textbf{TODO}\footnotemark \\
+    Code Line Count: &\textbf{TODO}\footnotemark \\
+    Project Originator: &\textbf{Dr John K. Fawcett} \\
+    Project Supervisor: &\textbf{Dr John K. Fawcett}
+  \end{tabular}
+
+  \section*{Original Aims of the Project}
+
+  The original aims of the project were to implement a system that was intended to be able to identify who the performer of a piece of piano music was, based on the audio signal of that performance and of previous performances of the same piece. This system would use 5 metrics, and the project's aim was to evaluate how useful each of these 5 metrics are, and under what conditions they are useful.
+
+  \section*{Work Completed}
+  TODO: COMPLETE WHEN DONE
+
+  I implemented each of the initially proposed metrics: tempo variation over time, dynamics over time, chroma vector extraction, note offsets, and timbre extraction. I also implemented a data synthesis module that allowed me to synthesise piano data to test each of these metrics on before I had begun real-world data collection. 
+
+  \section*{Special Difficulties}
+  None.
+
+  \footnotetext[1]{Calculated using \texttt{texcount} (found at \url{https://app.uio.no/ifi/texcount/})}
+  \footnotetext[2]{Lines of Python, calculated using \texttt{cloc} (found at \url{https://github.com/AlDanial/cloc})}
+
+
+
+\end{document}
