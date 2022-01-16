@@ -2,6 +2,7 @@
 
 \usepackage{standalone}
 \usepackage{import}
+\usepackage{pdfpages}
 \usepackage{dissertationstyle}
 
 \bibliography{personal}
@@ -55,7 +56,16 @@
 
 \backmatter
 
+
 \printbibliography
+
+\chapter*{Appendix}
+
+%% TODO
+
+\includepdf[pages=-]{proposal/proposal.pdf}
+
+
 
 
     
