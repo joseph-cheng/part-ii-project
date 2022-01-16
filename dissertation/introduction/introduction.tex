@@ -1,4 +1,4 @@
-\documentclass[crop=false]{standalone}
+\documentclass[oneside, class=book, crop=false, 12pt]{standalone}
 
 \usepackage{../dissertationstyle}
 
@@ -6,11 +6,26 @@
 
 \begin{document}
 
+
+\ifstandalone
+  \setcounter{chapter}{0}
+  \chapter{Introduction}
+\fi
+\resetfigpath{introduction}
+
+This chapter explains the motivation for this project and discusses previous related work in this area.
+
 \section{Motivation}
 
-This is a test! \cite{bernays14}
+Individuals have many characteristics that can be used to identify them, ranging from immutable characteristics of a person like biometrics, to qualities of an action they perform, such as their handwriting. This project explores the use of another characteristic that can be used to identify a person: how they play a particular piece on the piano. 
 
-More test
+A motivating use-case for this is seen as follows: suppose 10 people play a particular piece of music on the piano and we have audio recordings for each of these performances. If one of these performers plays the piece again, how can we determine which performer this was, from just the audio recordings? Such a problem requires an approach that utilises techniques from both digital signal processing (DSP) and music information retrival (MIR).
+
+In order to pull useful information out of an audio recording related to a pianist's performance, we need to process the signal in some meaningful way to gather musical information from it. For example, the discrete-time Fourier transform (DTFT) is used to transform a discrete-time audio signal into its frequency data. This technique is invaluable and has a myriad of uses, for example being able to get data about what notes are being played at a given time, or to attempt to quantify the timbre of a particular sound.
+
+
+\section{Related work}
+
 
 \ifstandalone
   \printbibliography

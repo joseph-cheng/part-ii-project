@@ -1,10 +1,16 @@
-\documentclass[crop=false]{standalone}
+\documentclass[oneside, class=book, 12pt, crop=false]{standalone}
 
 \usepackage{../dissertationstyle}
 
 \bibliography{../personal}
 
 \begin{document}
+
+\ifstandalone
+  \setcounter{chapter}{2}
+  \chapter{Implementation}
+\fi
+\resetfigpath{implementation}
 
 \ifstandalone
   \printbibliography
