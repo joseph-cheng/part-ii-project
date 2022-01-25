@@ -256,7 +256,23 @@ def calculate_beats(audio, advance=0.004):
         beats.append(current_beat)
 
     beats.reverse()
-    return np.array([beat * advance for beat in beats])
+
+    ret = np.array([beat * advance for beat in beats])
+    global_tempo = 225
+
+
+    beat_graph = ret - ((1/global_tempo) * 60) * np.arange(1, len(ret) + 1)
+
+    plt.rcParams.update({'font.size': 30})
+    plt.plot(ret, beat_graph, label="Distance from expected beat")
+    plt.plot([0, audio.get_duration()], [0, 0])
+    plt.legend(loc="upper left")
+
+
+    plt.show()
+
+
+    return ret
 
 
 def calculate_tempo_metric(audio):

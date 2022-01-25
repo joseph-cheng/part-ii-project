@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 def calculate_power(signal):
     """
@@ -33,6 +35,12 @@ def calculate_dynamics_metric(audio, window_size=0.04, window_advance=0.04):
 
         window_signal = audio.signal[window_start:window_end]
         power_array[window] = calculate_power(window_signal)
+
+    plt.rcParams.update({'font.size': 30})
+    plt.plot(np.linspace(0, audio.get_duration(), len(audio.signal)), audio.signal, label="Audio signal")
+    plt.plot(np.linspace(0, audio.get_duration(), len(power_array)), power_array, label="Dynamics")
+    plt.legend(loc="upper left")
+    plt.show()
 
     return (window_advance, power_array)
 

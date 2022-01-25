@@ -1,6 +1,7 @@
 import util
 import scipy.fft
 import numpy as np
+import matplotlib.pyplot as plt
 
 def calculate_chroma_metric(audio, window_size=0.1, window_advance=0.025):
     """
@@ -29,7 +30,9 @@ def calculate_chroma_metric(audio, window_size=0.1, window_advance=0.025):
 
     # now we normalise
     max_val = np.amax(chroma_array)
-    return (window_advance, chroma_array / max_val)
+    chroma_array = chroma_array / max_val
+
+    return (window_advance, chroma_array)
 
 
 
@@ -56,6 +59,7 @@ def calculate_pitch_profile(signal, sample_rate):
 
         for index in range(freq_to_index(lower_frequency), freq_to_index(upper_frequency)):
             ret[pitch % 12] += np.absolute(spectrum[index])
+
 
     return ret
 

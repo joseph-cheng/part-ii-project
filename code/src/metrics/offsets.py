@@ -1,5 +1,6 @@
 import util
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def calculate_offsets_metric(audio):
@@ -16,12 +17,15 @@ def calculate_offsets_metric(audio):
     onset_function = audio.get_onset_function()
 
     moving_average_window = 4
-    print(beat_times)
     tempo_variation_average = util.moving_average(tempo_variation, moving_average_window)
 
     # basically, take the moving average tempo, and search for the nearest highest onset value in a small window around the expected beat time based on the moving average tempo
     current_loc = 0
     onset_window_search_size = 0.2
+    # plotting
+    offset_plot = np.zeros(len(audio.signal))
+    onset_plot = np.zeros(len(audio.signal))
+
     ret = np.zeros((len(tempo_variation_average), 3))
     for i, inter_onset_interval in enumerate(tempo_variation_average):
         current_loc += inter_onset_interval
@@ -29,6 +33,19 @@ def calculate_offsets_metric(audio):
         ret[i][0] = onset_loc
         ret[i][1] = onset_strength
         ret[i][2] = current_loc
+
+    for onset_loc, onset_strength, current_loc in ret:
+        print(onset_loc)
+        offset_plot[audio.to_samples(onset_loc + current_loc)] = 1
+        onset_plot[audio.to_samples(current_loc)] = 1
+
+    plt.rcParams.update({'font.size': 30})
+    plt.plot(np.linspace(0, audio.get_duration(), len(audio.signal)), offset_plot, label="Actual note onsets")
+    plt.plot(np.linspace(0, audio.get_duration(), len(audio.signal)), onset_plot, label="Expected note onsets")
+    plt.legend(loc="upper left")
+    plt.show()
+
+
 
     return ret
 

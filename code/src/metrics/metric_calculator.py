@@ -53,5 +53,5 @@ def calculate_metrics(audio, metric_flags):
 
     return calculated_metrics
 
-print(calculate_metrics("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/data/participant_1_prelude_1.wav", OFFSETS ))
+calculate_metrics("/home/joe/Documents/cambridge/ii/part-ii-project/code/res/data/participant_1_prelude_1.wav", TEMPO)
 
