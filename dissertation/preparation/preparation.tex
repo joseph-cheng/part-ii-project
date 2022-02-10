@@ -115,20 +115,122 @@ This does not require much work to calculate, and for a finite sequence $x_0, \l
   X_k = \sum_{n=0}^{N-1} x_n e^{-2\pi j \frac{k}{N}n}
 \end{equation}
 
+\subsection{Convolution}
+
+%TODO
+
 
 \subsection{The Mel Scale}
 
-The mel scale is a scale of frequencies that intends to map distance between frequencies to differenecs in perceptual pitch. This is useful for our domain, since the quantity we actually care about is pitch, and not Hertz frequency.
+The mel scale is a scale of frequencies that intends to map distance between frequencies to differenecs in perceptual pitch. This is useful for this project, since the quantity we actually care about is pitch, and not Hertz frequency.
 
-There are many different definitions for the mel scale, since perceptual pitch is a relatively subjective meausre, but we use the definition in Equation \ref{eq:mel}:
+There are many different definitions for the mel scale, since perceptual pitch is a relatively subjective meausre, but we use the definition in Equation \ref{eq:mel}, where $f$ is a frequency in Hertz and $m$ is the corresponding frequency in the mel scale:
 
 \begin{equation}\label{eq:mel}
   m = 2595\log_{10}\left(1 + \frac{f}{700}\right)
 \end{equation}
 
+\section{Beat Tracking}
+
+Beat tracking is the technique of taking some audio signal of music, and attempting to find the location of beats, or the pulse, of the music. This is not the same as rhythm, since rhythm is more concerned with the location of individual notes, whereas beats are a steady pulse perceived by humans throughout a whole piece of music. The technique we use for beat tracking comes from a paper by Ellis \cite{ellis07} and makes use of dynamic programming techniques.
+
+To perform beat tracking, we assume the existence of some onset function and a global tempo estimate, Ellis' constructions of which we explore further in Sections \ref{subsec:onset detection} and \ref{subsec:tempo inference} respectively. An onset function tracks where perceptual note onsets are in an audio signal as seen in Figure \ref{fig:onsetfunction}, and a tempo estimate is simply an estimate of how fast the piece is being played overall, in beats per minute (BPM).
+
+QUESTION: is it worth explaining this algorithm in large detail? or just direct the reader to Ellis' paper, don't want to plagiarise.
+
+The dynamic programming algorithm for beat tracking works by assuming we have some already optimal set of previous beat times, and then searching for the next beat time by trying to find a time with a high onset function value, as well as being coherent with the tempo estimate.
 
 
 
+\begin{minipage}{\textwidth}
+  \centering
+  \includegraphics[scale=0.3]{onsetfunction}
+  \captionof{figure}{Example onset function against audio signal}\label{fig:onsetfunction}
+\end{minipage}
+
+\subsection{Onset Detection}\label{subsec:onset detection}
+
+ There is a wide literature on onset detection \cite{bello05}, but due to the nature of the relevant audio recordings (solo piano performances) which are relatively simple and have strong percussive elements, opting for the simple technique used by Ellis seemed sensible.
+
+ The idea behind Ellis' onset function is to report a high value when there are large jumps in energy in multiple frequency bands, which indicates a note has been played.
+
+ The technique works as follows:
+
+ \begin{itemize}
+
+   \item
+     First, resample the signal to 8kHz (this means we will not be able to detect frequencies above 4kHz, which is good because the highest frequency note a piano can generate is $\sim$4kHz)
+
+   \item
+     Take windows of the sound, we use a 32ms wide window and advance by 4ms.
+
+   \item
+     For each window, compute its DFT.
+
+   \item
+     Convert the frequencies in the DFT to use the mel scale instead of Hertz, to more accurately represent pitch bands.
+
+   \item
+     Convert the amplitudes in the DFT to use dB for normalisation.
+
+   \item
+     Across all windows, compute the first-order difference for each pitch band, setting negative values to zero (so they do not interfere with the next step)
+
+   \item
+     For each pair of windows, sum all of the first-order differences together, such that we get a signal.
+
+   \item
+     To make this signal have zero-mean (like a regular signal would), we pass the signal through a high-pass filter with a cutoff at 0.4Hz
+
+   \item
+     To smooth the signal, we convolve it with a small Gaussian distribution.
+
+   \item
+     Finally, we normalise the signal by dividing by the standard deviation.
+
+ \end{itemize}
+
+ The output of this is our onset function $O(t)$
+
+
+ \subsection{Tempo Inference}\label{subsec:tempo inference}
+
+ The tempo inference algorithm is relatively simple, and uses our onset function.
+
+ The idea is to try many potential values $\tau$ that represent the expected distance between each beat (the corresponding tempo would be $\frac{60}{tau}$). Then, we compute $O(t-\tau)$ and take the inner product with $O(t)$. If $\tau$ is a good guess, then this inner product will be high, since many peaks in the onset function will line up.
+
+ It is important to note that we cannot simply choose the $\tau$ that gives us the highest inner product, since this could find many valid tempos. For instance, if 80 BPM is our actual tempo, then 40 BPM, 20 BPM, etc. will be equally as good estimates.
+
+ To solve this issue, we apply a weighting function to each $\tau$ that corresponds to the likelihood that a human would choose this tempo out of all valid tempos. In particular, we center around 120 BPM and drop off either side, as shown in Figure \ref{fig:tempo weighting function}.
+
+ The exact formula is given as follows in Equation \ref{eq:tempo weighting function}
+
+ \begin{equation}\label{eq:tempo weighting function}
+   W(\tau) = \exp\left(-\frac{1}{2}\left(\frac{\log_2 \frac{\tau}{\tau_0}}{\sigma_\tau}\right)^2\right)
+ \end{equation}
+
+ In this equation, $\tau_0$ is our tempo bias, so 0.5 (corresponding to 120 BPM). $\sigma_\tau$ is how fast our weighting function drops off, and is set at 1.4 corresponding to empirical measurements done by Ellis.
+
+
+
+
+\begin{minipage}{\textwidth}
+  \centering
+    \begin{tikzpicture}
+    \begin{axis}[
+      axis x line=middle, axis y line=middle,
+      ymin=0, ymax=1.5, ytick={-1,...,1}, ylabel=$W(\tau)$,
+      xmin=0, xmax=3, xtick={0,...,3}, xlabel=$\tau$,
+    ]
+    % lol
+    \addplot[blue, domain=0:3, samples=100]{exp(-0.5 * ((log2(x / 0.5)) / 1.4)^2)};
+    \addplot [mark=none,dashed, black] coordinates {(0.5, 0) (0.5, 1)};
+    \node[label={90:{(0.5, 1)}}, circle, fill,inner sep=2pt] at (axis cs: 0.5,1) {};
+    \end{axis}
+    \end{tikzpicture} 
+
+    \captionof{figure}{$W(\tau)$}\label{fig:tempo weighting function}
+\end{minipage}%
 
 
 \ifstandalone

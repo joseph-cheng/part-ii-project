@@ -127,9 +127,20 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
 
 
 
+    offset_added_by_window = int(window_size/window_advance)
+    normalized_onsets = np.insert(normalized_onsets, offset_added_by_window, np.zeros(offset_added_by_window))
     onset_function = OnsetFunction(normalized_onsets, window_advance, audio.sample_rate)
 
 
+    #PLOTTING CODE
+
+    plt.rcParams.update({'font.size': 30})
+    plt.plot(np.linspace(0, audio.get_duration(), len(audio.signal)), audio.signal/max(audio.signal), label="Audio signal")
+    plt.plot(np.linspace(0, audio.get_duration(), len(normalized_onsets)), normalized_onsets/max(normalized_onsets), label="Onset function")
+    plt.legend(loc="upper left")
+    plt.yticks([])
+    plt.xticks([])
+    plt.show()
 
 
 
@@ -266,6 +277,8 @@ def calculate_beats(audio, advance=0.004):
     plt.rcParams.update({'font.size': 30})
     plt.plot(ret, beat_graph, label="Distance from expected beat")
     plt.plot([0, audio.get_duration()], [0, 0])
+    plt.yticks([])
+    plt.xticks([])
     plt.legend(loc="upper left")
 
 
