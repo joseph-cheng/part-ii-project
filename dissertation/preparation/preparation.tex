@@ -12,7 +12,6 @@
 \fi
 \resetfigpath{preparation}
 
-This chapter gives and discuss the preparatory work done for this project.
 
 Structure:
 
@@ -30,6 +29,104 @@ Requirements analysis:
 remember:
 
 reverb, echo, non-linear frequency response, fix by multiplying by inverse?
+
+
+%%%%%%%%%%%%%%%%%%%%%%
+
+This chapter gives and discuss the preparatory work done for this project. Before work began on the project, I had minimal knowledge in fields like digital signal processing (DSP) or music information retrieval (MIR).
+
+\section{Digital Signal Processing Techniques}\label{section:dsp techniques}
+
+First, we introduce some important DSP concepts and techniques: the Fourier transform, the discrete time Fourier transform, the discrete Fourier transform, and the mel scale.
+
+In DSP, we can model an analog signal as a continuous function of time $x(t)$, and a digital signal as a discrete sequence $\{x_n\} = \ldots, x_{-2}, x_{-1}, x_0, x_1, x_2, \ldots$, essentially a list of numbers. With a sampling period $t_s$ we can sample an analog signal $x(t)$ to generate a digital signal $\{x_n\}$ as follows: $\{x_n\} = x(nt_s)$, or equivalently with sampling period $f_s$ we get $\{x_n\} = x(\frac{n}{f_s})$
+
+\subsection{The Fourier Transform}\label{section:fourier transform}
+
+An important operation in DSP is the Fourier transform, which allows us to convert a signal from the time-domain into the frequency-domain. The Fourier transform $X(f) = \mathcal{F}\{x(t)\}$ is defined  on a continuous signal $x(t)$ in Equation \ref{eq:ft}
+
+\begin{equation}\label{eq:ft}
+  X(f) = \mathcal{F}\{x(t)\}(f) = \int_{-\infty}^\infty x(t)e^{-j2\pi ft}\mathrm{d}t
+\end{equation}
+
+Here, the symbol $j$ refers to $\sqrt{-1}$. By rewriting $e^{-j2\pi ft}$ as $\cos(2\pi f t) - j\sin(2\pi f t)$ we get the definition in Equation \ref{eq:ft2}, which should make the purpose of this transform clearer:
+
+\begin{equation}\label{eq:ft2}
+  X(f) = \mathcal{F}\{x(t)\}(f) = \int_{-\infty}^\infty x(t)[\cos(2\pi ft) - j\sin(2\pi f t)] \mathrm{d}t
+\end{equation}
+
+Here, it is more obvious that we are taking the frequency content of $x(t)$. It should be noted that the Fourier transform generates complex values. However, if the signal $x(t)$ is both real and even, then its Fourier transform $X(f)$ will also be real and even. Subsequently, if $X(f)$ is real and even, then the values for negative $f$ contain the same information as the values for non-negative $f$, so we can purely consider real, non-negative frequencies, which makes interpreting the Fourier transform in a real-world sense easier.
+
+As an example, we provide the Fourier transform of the box function in Figure \ref{fig:ft example}.
+
+\begin{minipage}{\textwidth}
+\begin{minipage}{.5\textwidth}
+    \begin{tikzpicture}[
+      declare function={
+          func(\x)= (\x<=-1) * (0)   +
+         and(\x>-1, \x<=1) * (1)     +
+         (\x>1) * (0);
+      }
+    ]
+    \begin{axis}[
+      axis x line=middle, axis y line=middle,
+      ymin=-1, ymax=2, ytick={-1,...,2}, ylabel=$x(t)$,
+      xmin=-2, xmax=2, xtick={-2,...,2}, xlabel=$t$,
+    ]
+    % lol
+    \addplot[blue, domain=-2:2, samples=100]{func(x)};
+    \end{axis}
+    \end{tikzpicture} 
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+    \begin{tikzpicture}[
+      declare function={
+          func(\x) = sin(deg(\x))/(\x);
+      }
+    ]
+    \begin{axis}[
+      axis x line=middle, axis y line=middle,
+      ymin=-1, ymax=2, ylabel=$X(f)$,
+      xmin=-10, xmax=10, xlabel=$f$,
+    ]
+    % lol
+    \addplot[blue, domain=-10:10, samples=100]{func(x)};
+    \end{axis}
+    \end{tikzpicture} 
+\end{minipage}
+\captionof{figure}{The rectangular function and its Fourier transform}\label{fig:ft example}
+\centering
+\end{minipage}
+
+
+\subsection{The Discrete Time Fourier Transform and Discrete Fourier Transform}
+
+For our work, we do not use continuous signals, we instead work with discrete sequences, and as such we need a variant of the Fourier transform to work with these discrete sequences. This is called the discrete time Fourier transform (DTFT), and the definition given in Equation \ref{eq:dtft} comes from considering our discrete sequence $\{x_n\}$ as being sampled from some continuous signal at sampling frequency $f_s$:
+
+\begin{equation}\label{eq:dtft}
+  \hat{X}(f) = \mathcal{F}\{\{x_n\}\}(f) = \sum_{-\infty}^\infty x_n \cdot e^{-2\pi j \frac{f}{f_s}n}
+\end{equation}
+
+In practice, we make one further restriction on our input sequences: they are finite. Fortunately, a useful property of the Fourier transform (that also holds for the DTFT) is that if the input is periodic, then the resulting spectrum will be discrete. So, we can take our finite input sequence, and turn it into an infinite, periodic, discrete sequence, and then take the DTFT to get a discrete frequency spectrum, which gives us the discrete Fourier transform (DFT).
+
+This does not require much work to calculate, and for a finite sequence $x_0, \ldots, x_{N-1}$, we simply replace the bounds on our sum in Equation \ref{eq:dtft} with 0 and $N-1$, to get the definition of the DFT in Equation \ref{eq:dft}:
+
+\begin{equation}\label{eq:dft}
+  X_k = \sum_{n=0}^{N-1} x_n e^{-2\pi j \frac{k}{N}n}
+\end{equation}
+
+
+\subsection{The Mel Scale}
+
+The mel scale is a scale of frequencies that intends to map distance between frequencies to differenecs in perceptual pitch. This is useful for our domain, since the quantity we actually care about is pitch, and not Hertz frequency.
+
+There are many different definitions for the mel scale, since perceptual pitch is a relatively subjective meausre, but we use the definition in Equation \ref{eq:mel}:
+
+\begin{equation}\label{eq:mel}
+  m = 2595\log_{10}\left(1 + \frac{f}{700}\right)
+\end{equation}
+
+
 
 
 
