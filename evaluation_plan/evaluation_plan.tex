@@ -1,0 +1,27 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{parskip}
+
+\usepackage[margin=1.0in]{geometry}
+
+\begin{document}
+\section*{Evaluation Plan}
+
+There are many combinations of parameters we can use to evaluate the system. Our system works by having a set of signals $S$, and given a new signal $x$, determining which performance in $S$ that $x$ is most similar to. For this reason, the only thing we care about is for a particular $x$, do we choose the correct element in $S$?
+
+Our dataset consists of 5 performers, each performing 4 pieces twice. Furthermore, we have 5 different metrics, and thus 31 different metric combinations (since we cannot test with 0 metrics).
+
+So, we can construct the following test:
+
+For each metric combination, take each piece in turn, and take each of the eight performances of the piece, and apply the system to see if the system works for that performance.
+
+Then, aggregate the data for each metric combination, which gives us a success rate for each metric combination.
+
+Further evaluation can then be done with addition of variation into the signals. For example, we could apply reverb to each of the signals to simulate the acoustics of a room. This can be easily done through convolution of an impulse response, although a suitable impulse response must be chosen. We can also add noise to a signal. Generating white noise might not be representative of real microphone background noise, so it would be more suitable to either record our own background noise, or find pre-recorded background noise, such as here \url{https://freesound.org/people/florianreichelt/sounds/448213/}
+
+
+
+
+\end{document}
