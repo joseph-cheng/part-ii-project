@@ -54,7 +54,7 @@ Precautions taken:
 
 No other data will be recorded about the participants other than the audio of their performance, which will be matched up with an anonymous identifier. Data will only be stored on our local machines or on USB drives.
 
-Consent from participants will be obtained directly, by getting explicit written confirmation from each performer before recording them.
+Consent from participants will be obtained directly, by getting explicit written confirmation from each performer before recording them. Furthermore, recordings will be made available to participants if they request it, and recordings will be deleted if a participant's consent is subsequently withdrawn.
 
 The data being collected is not very sensitive, and the dataset will not record any other identifiable information about a particular performance. Even in the case that someone was able to identify who the performer of a particular performance was, it is unlikely that this could cause harm to any participant.
 

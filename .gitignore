@@ -12,8 +12,8 @@
 *~
 *.swp
 *.gif
-*.png
 __pycache__/
 *.sf2
 *.wav
 *.toc
+*.synctex(busy)
