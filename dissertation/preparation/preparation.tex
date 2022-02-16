@@ -35,7 +35,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%
 
-This chapter gives and discusses the preparatory work done for this project. We begin by explaining some key concepts and algorithms used in this project. Next, we discuss and justify choices made for real-world data collection. We then discuss the requirements of this project, and finally talks about the software engineering tools and techniques that were employed throughout this project.
+This chapter gives and discusses the preparatory work done for this project. We begin by explaining some key concepts and algorithms used in this project. Next, we discuss and justify choices made for real-world data collection and metric calculation. We then discuss the requirements of this project, and finally talk about the software engineering tools and techniques that were employed throughout this project.
 
 \section{Digital Signal Processing Techniques}\label{section:dsp techniques}
 
@@ -128,13 +128,135 @@ There are many different definitions for the mel scale, since perceptual pitch i
   m = 2595\log_{10}\left(1 + \frac{f}{700}\right)
 \end{equation}
 
+\subsection{Convolution}
+
+Convolution is a method of combining two signals that in essence combines the shape of both functions. It works by reversing one of the signals and sliding it over the other, computing the dot product for each shift.
+
+We give the formula for convolution of two discrete sequences $\{x_n\} * \{y_n\} = \{z_n\}$ in Equation \ref{eq:convolution}, although there is a continuous analogue. Figure \ref{fig:convolution} gives a graphical representation of convolution.
+
+\begin{equation}\label{eq:convolution}
+    z_n = \sum_{k=-\infty}^\infty x_k \cdot y_{n-k}
+\end{equation}
+
+\begin{minipage}{\linewidth}
+    \centering
+\begin{minipage}{0.33\linewidth}
+    \centering
+  \begin{tikzpicture}[scale=0.5]
+  \begin{axis}[
+    ymin=0,
+    xmin=0,
+    xmax=7,
+    xticklabels={,,},
+    yticklabels={,,},
+    ytick distance={0.125},
+    ]
+    \addplot[only marks] coordinates {
+        (0, 0)
+        (1, 1)
+        (2, 0.5)
+        (3, 0.25)
+        (4, 0)
+        (5,0)
+        (6,0)
+        (7,0)
+      };
+
+    \addplot +[mark=none, black, dashed] coordinates {(1, 1) (1,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(2, 0.5) (2,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(3, 0.25) (3,0)};
+
+    \node[] at (axis cs: 5, 0.75) {\LARGE $\{x_n\}$};
+
+
+
+      
+  \end{axis}
+    
+\end{tikzpicture}
+    
+\end{minipage}%
+\begin{minipage}{0.33\linewidth}
+    \centering
+  \begin{tikzpicture}[scale=0.5]
+  \begin{axis}[
+    ymin=0,
+    xmin=0,
+    xmax=7,
+    xticklabels={,,},
+    yticklabels={,,},
+    ytick distance={0.125},
+    ]
+    \node[] at (axis cs: 5, 0.75) {\LARGE $\{y_n\}$};
+    \addplot[only marks] coordinates {
+        (0, 0)
+        (1, 1)
+        (2,0)
+        (3,0)
+        (4, 0.5)
+        (5,0)
+        (6,0)
+        (7,0)
+      };
+
+    \addplot +[mark=none, black, dashed] coordinates {(1, 1) (1,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(4, 0.5) (4,0)};
+  \end{axis}
+    
+\end{tikzpicture}
+    
+\end{minipage}%
+\begin{minipage}{0.33\linewidth}
+  \centering
+  \begin{tikzpicture}[scale=0.5]
+  \begin{axis}[
+    ymin=0,
+    xmin=0,
+    xmax=7,
+    xticklabels={,,},
+    yticklabels={,,},
+    ytick distance={0.125},
+    ]
+    \node[] at (axis cs: 4.5, 0.75) {\LARGE $\{x_n\} * \{y_n\}$};
+    \addplot[only marks] coordinates {
+        (0, 0)
+        (1, 1)
+        (2, 0.5)
+        (3, 0.25)
+        (4, 0.5)
+        (5, 0.25)
+        (6, 0.125)
+        (7,0)
+
+      };
+
+    \addplot +[mark=none, black, dashed] coordinates {(1, 1) (1,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(2, 0.5) (2,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(3, 0.25) (3,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(4, 0.5) (4,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(5, 0.25) (5,0)};
+    \addplot +[mark=none, black, dashed] coordinates {(6, 0.125) (6,0)};
+
+
+
+      
+  \end{axis}
+    
+\end{tikzpicture}
+\end{minipage}
+\captionof{figure}{Convolution of two discret sequences}
+\label{fig:convolution}
+\end{minipage}
+
+
 \section{Beat Tracking}
 
 Beat tracking is the technique of taking some audio signal of music, and attempting to find the location of beats, or the pulse, of the music. This is not the same as rhythm, since rhythm is more concerned with the location of individual notes, whereas beats are a steady pulse perceived by humans throughout a whole piece of music. The technique we use for beat tracking comes from a paper by Ellis \cite{ellis07} and makes use of dynamic programming techniques.
 
+In this section, we give a brief overview of the algorithm. For an in-depth explanation, see Ellis' original paper \cite{ellis07}.
+
 To perform beat tracking, we assume the existence of some onset function and a global tempo estimate, Ellis' constructions of which we explore further in Sections \ref{subsec:onset detection} and \ref{subsec:tempo inference} respectively. An onset function tracks where perceptual note onsets are in an audio signal as seen in Figure \ref{fig:onsetfunction}, and a tempo estimate is simply an estimate of how fast the piece is being played overall, in beats per minute (BPM).
 
-QUESTION: is it worth explaining this algorithm in large detail? or just direct the reader to Ellis' paper, don't want to plagiarise.
 
 The dynamic programming algorithm for beat tracking works by assuming we have some already optimal set of previous beat times, and then searching for the next beat time by trying to find a time with a high onset function value, as well as being coherent with the tempo estimate.
 
@@ -152,24 +274,12 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
 
  The idea behind Ellis' onset function is to report a high value when there are large jumps in energy in multiple frequency bands, which indicates a note has been played.
 
- The technique works as follows:
+ The general gist of the algorithm is as follows:
 
  \begin{itemize}
 
    \item
-     First, resample the signal to 8kHz (this means we will not be able to detect frequencies above 4kHz, which is good because the highest frequency note a piano can generate is $\sim$4kHz)
-
-   \item
-     Take windows of the sound, we use a 32ms wide window and advance by 4ms.
-
-   \item
-     For each window, compute its DFT.
-
-   \item
-     Convert the frequencies in the DFT to use the mel scale instead of Hertz, to more accurately represent pitch bands.
-
-   \item
-     Convert the amplitudes in the DFT to use dB for normalisation.
+     Take windows of the sound, we use a 32ms wide window and advance by 4ms and compute their DFT in mel.
 
    \item
      Across all windows, compute the first-order difference for each pitch band, setting negative values to zero (so they do not interfere with the next step)
@@ -178,59 +288,26 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
      For each pair of windows, sum all of the first-order differences together, such that we get a signal.
 
    \item
-     To make this signal have zero-mean (like a regular signal would), we pass the signal through a high-pass filter with a cutoff at 0.4Hz
-
-   \item
-     To smooth the signal, we convolve it with a small Gaussian distribution.
-
-   \item
-     Finally, we normalise the signal by dividing by the standard deviation.
+       Smooth and normalise the signal
 
  \end{itemize}
 
- The output of this is our onset function $O(t)$
+ The output of this is our onset function $O(t)$.
 
 
  \subsection{Tempo Inference}\label{subsec:tempo inference}
 
  The tempo inference algorithm is relatively simple, and uses our onset function.
 
- The idea is to try many potential values $\tau$ that represent the expected distance between each beat (the corresponding tempo would be $\frac{60}{tau}$). Then, we compute $O(t-\tau)$ and take the inner product with $O(t)$. If $\tau$ is a good guess, then this inner product will be high, since many peaks in the onset function will line up.
+ The idea is to iterate over a range of possible tempos, and for each tempo we compute $\tau$, the time between beats at that tempo. Then, we delay our onset function by $\tau$ to get $O(t - \tau)$, and compute the inner product between $O(t)$ and $O(t-\tau)$ to get a measure of how good our tempo guess was, since a good guess will hopefully align the peaks and thus result in a large inner product.
 
- It is important to note that we cannot simply choose the $\tau$ that gives us the highest inner product, since this could find many valid tempos. For instance, if 80 BPM is our actual tempo, then 40 BPM, 20 BPM, etc. will be equally as good estimates.
-
- To solve this issue, we apply a weighting function to each $\tau$ that corresponds to the likelihood that a human would choose this tempo out of all valid tempos. In particular, we center around 120 BPM and drop off either side, as shown in Figure \ref{fig:tempo weighting function}.
-
- The exact formula is given as follows in Equation \ref{eq:tempo weighting function}
-
- \begin{equation}\label{eq:tempo weighting function}
-   W(\tau) = \exp\left(-\frac{1}{2}\left(\frac{\log_2 \frac{\tau}{\tau_0}}{\sigma_\tau}\right)^2\right)
- \end{equation}
-
- In this equation, $\tau_0$ is our tempo bias, so 0.5 (corresponding to 120 BPM). $\sigma_\tau$ is how fast our weighting function drops off, and is set at 1.4 corresponding to empirical measurements done by Ellis.
+ We weight each of these inner products such that tempos closer to 120 BPM are get higher values (humans tend to gravitate towards this tempo), and then take the tempo with the highest value.
 
 
 
-
-\begin{minipage}{\textwidth}
-  \centering
-    \begin{tikzpicture}
-    \begin{axis}[
-      axis x line=middle, axis y line=middle,
-      ymin=0, ymax=1.5, ytick={-1,...,1}, ylabel=$W(\tau)$,
-      xmin=0, xmax=3, xtick={0,...,3}, xlabel=$\tau$,
-    ]
-    % lol
-    \addplot[blue, domain=0:3, samples=100]{exp(-0.5 * ((log2(x / 0.5)) / 1.4)^2)};
-    \addplot [mark=none,dashed, black] coordinates {(0.5, 0) (0.5, 1)};
-    \node[label={90:{(0.5, 1)}}, circle, fill,inner sep=2pt] at (axis cs: 0.5,1) {};
-    \end{axis}
-    \end{tikzpicture} 
-
-    \captionof{figure}{$W(\tau)$}\label{fig:tempo weighting function}
-\end{minipage}%
 
 \section{Data Collection}
+
 
 To evaluate the project, first-hand data had to be collected. The system requires multiple performances of the same piece by the same pianist, and generally performers tend to only ever upload one performance of a piece. This meant that I had to find both performers and pieces for them to perform, so that I could record them. Overall, there were 5 performers, each performing 4 pieces twice.
 
@@ -245,7 +322,41 @@ The pieces were chosen to be not too difficult, such that performers could learn
   \item Beethoven - Moonlight Sonata (1st Movement)
 \end{itemize}
 
+This selection of pieces also intends to cover a range of different techniques, e.g. `Prelude in C Major' has many fast notes in succession, whereas `Sweden' has slow chords.
+
 Recordings were made by using a Kawai ES110 digital piano, recording directly into a computer, such that no noise or distortion from a microphone is present in the recordings.
+
+\section{Metric Choice}
+
+There are 5 metrics we use in this project, recall from Chapter \ref{chapter:introduction}:
+
+\begin{itemize}
+    \item
+        Tempo variation over time
+
+    \item
+        Dynamics over time
+
+    \item
+        Chroma vector extraction
+
+    \item
+        Note offsets
+
+    \item
+        Timbre extraction
+\end{itemize}
+
+The data we have available to us is what informs these particular metric choices. A key factor is that we are dealing with raw audio signals, and not a symbolic representation like seen in previous work \cite{bernays14}. This means that certain luxuries are not afforded to us, like the ability to precisely see where note-ons and note-offs are, or the exact notes that are played, or where the sustain pedal is used. These choices were also informed by my own experience of playing and listening to solo piano music (note to John: is this point a good enough justification? Or do I need to find research that supports these metric choices more).
+
+For example, with raw audio recordings we can make guesses at where notes are played (tempo variation over time, note offsets), and what notes are being played (chroma vector extraction), but we cannot know with certainty.
+
+Furthermore, due to the system intended to work on performances of the same piece, we can try and measure qualities of a particular performer's interpretation of the piece with metrics like tempo variation over time and dynamics over time.
+
+The timbre extraction metric, as explained before, is hard to give a semantic meaning for. It in essence works by taking the DFT of windows of the signal, and transformingeach of these DFTs with a discrete cosine transform (similar to the DFT) to obtain some coefficients for each window, yielding some form of spectrogram for the entire signal. 
+
+
+
 
 
 \section{Requirements Analysis}
@@ -276,7 +387,6 @@ Table \ref{table:requirements} lists requirements and their priorities. These mi
   \label{table:requirements}
 \end{minipage}
 
-The data synthesis engine for piano data
 
 \section{Software Engineering Tools and Technologies}
 
