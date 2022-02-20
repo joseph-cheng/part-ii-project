@@ -56,14 +56,15 @@ def evaluate_metrics(data_dir, metric_flags):
 
     # for each target performance, run our system
     for piece in files:
-        for performance_num in range(1, performances_per_piece, + 1):
+        for performance_num in range(1, performances_per_piece+1):
             chosen_performance = None
             other_performances = []
+            print(performance_num)
             for performer in files[piece]:
                 for performance in files[piece][performer]:
                     # this relies on the fact that performer and performance are just numbers
                     print(performer, performance)
-                    if performer * performance == performance_num:
+                    if (performer-1)*2 + performance == performance_num:
                         chosen_performance = files[piece][performer][performance]
                     else:
                         other_performances.append(files[piece][performer][performance])
@@ -91,10 +92,14 @@ def evaluate_metrics(data_dir, metric_flags):
     return total_correct/total_trials
 
 
+metric_results = {}
+
+for metric_combination in range(1, sum(metric_calculator.METRIC_STRINGS.keys()) + 1):
+    metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
+
+print(metric_results)
 
 
-
-print(evaluate_metrics(data_dir, metric_calculator.TEMPO))
 
 
 

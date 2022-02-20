@@ -35,6 +35,8 @@ METRIC_STRINGS = {
     TIMBRE:   "TIMBRE",
 }
 
+CACHED_AUDIOS = {}
+
 
 def calculate_metrics(audio, metric_flags):
     """
@@ -48,8 +50,11 @@ def calculate_metrics(audio, metric_flags):
 
     calculated_metrics = {}
 
+
     if isinstance(audio, str):
-        audio = util.read_audio(audio)
+        if audio not in CACHED_AUDIOS:
+            CACHED_AUDIOS[audio] = util.read_audio(audio)
+        audio = CACHED_AUDIOS[audio]
 
     for metric in METRIC_FUNCTIONS:
         if metric & metric_flags:
@@ -83,18 +88,22 @@ def get_most_similar(unknown_audio, other_audios, metric_flags):
 
     # first check if unknown_audio is a string, make it an Audio object if it is
     if isinstance(unknown_audio, str):
-        unknown_audio = util.read_audio(unknown_audio)
+        if unknown_audio not in CACHED_AUDIOS:
+            CACHED_AUDIOS[unknown_audio] = util.read_audio(unknown_audio)
+        unknown_audio = CACHED_AUDIOS[unknown_audio]
+
 
     # do the same for the other list, but maintain a different list so we can return a semantically useful value at the end
     other_audios_objs = []
     for other_audio in other_audios:
         if isinstance(other_audio, str):
-            other_audio = util.read_audio(other_audio)
+            if other_audio not in CACHED_AUDIOS:
+                CACHED_AUDIOS[other_audio] = util.read_audio(other_audio)
+            other_audio = CACHED_AUDIOS[other_audio]
         other_audios_objs.append(other_audio)
 
     print("Calculating metrics...")
 
-    # TODO: cache calculated metrics
     unknown_audio_metrics = calculate_metrics(unknown_audio, metric_flags)
 
     other_audios_metrics = []
