@@ -105,14 +105,14 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
 
     onset_array = np.sum(rectified_diff, axis=1)
 
-    highpass_filter = scipy.signal.butter(1, 0.4, btype="highpass", output="sos")
+    highpass_filter = scipy.signal.butter(5, 0.3, btype="highpass", output="sos", fs=1/window_advance)
 
     filtered_onsets = scipy.signal.sosfilt(highpass_filter, onset_array)
     # now we smooth by convolving with gaussian envelope
-    envelope_length = 0.020
+    envelope_length = 0.080
 
     # just made this number up, might be better choices
-    envelope_sigma = 0.008
+    envelope_sigma = 0.020
 
     gaussian_window = scipy.signal.windows.gaussian(
         int(envelope_length / window_advance), int(envelope_sigma / window_advance))
@@ -132,8 +132,8 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
     onset_function = OnsetFunction(normalized_onsets, window_advance, audio.sample_rate)
 
 
-    #PLOTTING CODE
-
+    """
+    # PLOTTING CODE
     plt.rcParams.update({'font.size': 30})
     plt.plot(np.linspace(0, audio.get_duration(), len(audio.signal)), audio.signal/max(audio.signal), label="Audio signal")
     plt.plot(np.linspace(0, audio.get_duration(), len(normalized_onsets)), normalized_onsets/max(normalized_onsets), label="Onset function")
@@ -141,13 +141,14 @@ def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):
     plt.yticks([])
     plt.xticks([])
     plt.show()
+    """
 
 
 
     return onset_function
 
 
-def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=0.7):
+def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=0.9):
     """
     Calculates an estimate of the global tempo of an audio signal, using the techniques outlined by Ellis, basically by calculating autocorrelation
 
@@ -164,35 +165,48 @@ def calculate_global_tempo(audio, tempo_bias=0.5, envelope_width=0.7):
 
     onset_function = audio.get_onset_function()
 
-    # tempo shouldn't go higher than 250
+    # tempo shouldn't go lower than 20
     min_tempo = 20
 
     auto_correlation = np.zeros(int(60 / min_tempo * audio.sample_rate))
 
     # now we iterate over potential tempos and find hte best
-    best_correlation = np.NINF
-    best_tempo = -1
     # iterate over possible delays from 0 to min_tempo samples through
     for tau_samples in range(1, int(60/min_tempo * audio.sample_rate)):
         tau = tau_samples / audio.sample_rate
         delayed_onset = onset_function.delay_samples(tau_samples)
-        reverse_delayed_onset = onset_function.delay_samples(-tau_samples)
+        truncated_onset = onset_function.delay_samples(-tau_samples)
+
+
+
+
 
 
         # calculate weighted correlation
-        correlation = weighting_func(tau) * delayed_onset.dot(reverse_delayed_onset)
+        correlation = weighting_func(tau) * delayed_onset.dot(truncated_onset)
+
+        """
+        if tau_samples % 3000 == 0:
+            plt.plot(delayed_onset.data, label=f"Tempo: {60/tau}")
+            plt.plot(truncated_onset.data, label=f"Correlation: {correlation}")
+            plt.legend()
+            plt.show()
+        """
+
 
 
         auto_correlation[tau_samples] = correlation
 
-        if correlation > best_correlation:
-            
-            best_correlation = correlation
-            best_tempo = 60/tau
+
+    # find duple and triple auto correlations to handle half/third tempos
+
+    duple_auto_correlation = 0.5 * auto_correlation + 0.5 * np.repeat(auto_correlation, 2)[:len(auto_correlation)]
+    triple_auto_correlation = 0.5 * auto_correlation + 0.5 * np.repeat(auto_correlation, 3)[:len(auto_correlation)]
 
 
-    
-    print(best_tempo)
+    best_tempo_samples = np.argmax(auto_correlation + duple_auto_correlation + triple_auto_correlation)
+    best_tempo = 60 / (best_tempo_samples / audio.sample_rate)
+
 
 
     return best_tempo
@@ -215,7 +229,7 @@ def calculate_beats(audio, advance=0.004):
 
 
     # alpha
-    WEIGHTING = 5
+    WEIGHTING = 200 
 
     # initialise C* and P*
     score_array = np.zeros(int(audio.get_duration() / advance))
@@ -269,20 +283,20 @@ def calculate_beats(audio, advance=0.004):
     beats.reverse()
 
     ret = np.array([beat * advance for beat in beats])
-    global_tempo = 225
 
 
+    """
+    # PLOTTING CODE
     beat_graph = ret - ((1/global_tempo) * 60) * np.arange(1, len(ret) + 1)
-
     plt.rcParams.update({'font.size': 30})
     plt.plot(ret, beat_graph, label="Distance from expected beat")
     plt.plot([0, audio.get_duration()], [0, 0])
     plt.yticks([])
     plt.xticks([])
     plt.legend(loc="upper left")
-
-
     plt.show()
+    """
+
 
 
     return ret
@@ -298,7 +312,6 @@ def calculate_tempo_metric(audio):
     """
 
     beat_times = audio.get_beat_times()
-    print(beat_times)
 
     return np.diff(beat_times)
 
@@ -308,8 +321,8 @@ def tempo_metric_similarity(audio1, audio2, metric1, metric2):
 
     audio1: Audio object containing the signal used to compute metric1
     audio2: Audio object containing the signal used to compute metric2
-    metric1: metric computed by calculate_timbre_metric function
-    metric2: metric computed by calculate_timbre_metric function
+    metric1: metric computed by calculate_tempo_metric function
+    metric2: metric computed by calculate_tempo_metric function
 
     returns: similarity score between 0 and 1 of the similarity of the two metrics
     """
@@ -317,6 +330,8 @@ def tempo_metric_similarity(audio1, audio2, metric1, metric2):
     # To compute similarity, we will just naively take sum of the squared errors, might be a smarter way to do this
 
     # again we truncate to minimum length in case they are different sizes
+
+
 
     beat_times1 = metric1[:min(len(metric1), len(metric2))]
     beat_times2 = metric2[:min(len(metric1), len(metric2))]

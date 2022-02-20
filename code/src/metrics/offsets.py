@@ -23,8 +23,10 @@ def calculate_offsets_metric(audio):
     current_loc = 0
     onset_window_search_size = 0.2
     # plotting
+    """ PLOTTING CODE
     offset_plot = np.zeros(len(audio.signal))
     onset_plot = np.zeros(len(audio.signal))
+    """
 
     ret = np.zeros((len(tempo_variation_average), 3))
     for i, inter_onset_interval in enumerate(tempo_variation_average):
@@ -34,8 +36,8 @@ def calculate_offsets_metric(audio):
         ret[i][1] = onset_strength
         ret[i][2] = current_loc
 
+    """ PLOTTING CODE
     for onset_loc, onset_strength, current_loc in ret:
-        print(onset_loc)
         offset_plot[audio.to_samples(onset_loc + current_loc)] = 1
         onset_plot[audio.to_samples(current_loc)] = 1
 
@@ -44,6 +46,7 @@ def calculate_offsets_metric(audio):
     plt.plot(np.linspace(0, audio.get_duration(), len(audio.signal)), onset_plot, label="Expected note onsets")
     plt.legend(loc="upper left")
     plt.show()
+    """
 
 
 

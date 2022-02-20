@@ -8,6 +8,13 @@ class Audio:
         self.sample_rate = sample_rate
         self.onset_function = None
         self.beat_times = None
+        self.cached_metrics = {}
+
+    def cache_metric(self, metric, value):
+        self.cached_metrics[metric] = value
+
+    def get_cached_metric(self, metric):
+        return self.cached_metrics.get(metric, None)
 
     def get_duration(self):
         return self.to_seconds(len(self.signal))

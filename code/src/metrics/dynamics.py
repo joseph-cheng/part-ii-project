@@ -36,11 +36,13 @@ def calculate_dynamics_metric(audio, window_size=0.04, window_advance=0.04):
         window_signal = audio.signal[window_start:window_end]
         power_array[window] = calculate_power(window_signal)
 
+    """ PLOTTING CODE
     plt.rcParams.update({'font.size': 30})
     plt.plot(np.linspace(0, audio.get_duration(), len(audio.signal)), audio.signal, label="Audio signal")
     plt.plot(np.linspace(0, audio.get_duration(), len(power_array)), power_array, label="Dynamics")
     plt.legend(loc="upper left")
     plt.show()
+    """
 
     return (window_advance, power_array)
 
@@ -61,21 +63,11 @@ def dynamics_metric_similarity(audio1, audio2, metric1, metric2):
 
     # we also normalise the metrics to the max dynamic meausred by the two metrics, because we care about relative difference
 
-    # unfortunately, the two signals might not be aligned, so we find the first beat time after 0 and align to this point instead, and we truncate to the smaller array
 
-    first_beat1 = audio1.get_beat_times()[1]
-    first_beat2 = audio2.get_beat_times()[1]
 
-    # now we truncate the start of each signal up until the first beat
 
     window_advance1, power_array1 = metric1
     window_advance2, power_array2 = metric2
-
-    starting_time_windows1 = first_beat1 // window_advance1
-    starting_time_windows2 = first_beat2 // window_advance2
-
-    power_array1 = power_array1[starting_time_windows1:]
-    power_array2 = power_array2[starting_time_windows2:]
 
     # now we truncate the end off
 

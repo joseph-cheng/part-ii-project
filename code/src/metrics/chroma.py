@@ -77,21 +77,8 @@ def chroma_metric_similarity(audio1, audio2, metric1, metric2):
 
     # again, like timbre/dynamics, we take the sum of squared errors, where the error between two chroma profiles is the sum of the squared errors of each of the pitch classes
 
-    # Furthermore, since the two signals might not be aligned, we find the first beat and align to that, and truncate the end
-
-    first_beat1 = audio1.get_beat_times()[1]
-    first_beat2 = audio2.get_beat_times()[1]
-
-    # now we truncate the start of each signal up until the first beat
-
     window_advance1, chroma_array1 = metric1
     window_advance2, chroma_array2 = metric2
-
-    starting_time_windows1 = first_beat1 // window_advance1
-    starting_time_windows2 = first_beat2 // window_advance2
-
-    chroma_array1 = chroma_array1[starting_time_windows1:]
-    chroma_array2 = chroma_array2[starting_time_windows2:]
 
     # now we truncate the end
 
