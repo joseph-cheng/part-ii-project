@@ -143,6 +143,8 @@ def timbre_metric_similarity(audio1, audio2, metric1, metric2):
 
     squared_errors_sum = np.sum(mfcc_errors)
 
+    mse = squared_errors_sum / len(timbre_array1)
+
     # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
 
-    return np.exp(-squared_errors_sum)
+    return np.exp(-mse)

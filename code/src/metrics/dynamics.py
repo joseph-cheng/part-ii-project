@@ -85,11 +85,13 @@ def dynamics_metric_similarity(audio1, audio2, metric1, metric2):
 
     squared_differences_sum = np.sum((power_array1 - power_array2)**2)
 
+    mse = squared_differences_sum / truncated_length
+
     # when the signals are identical, this value will be 0 (similarity=1), and can grow to be infinitely large, and similarity tapers to 0
 
-    # for tis reason, we apply exp(-squared_differences_sum) to get our similarity score
+    # for tis reason, we apply exp(-x) to get our similarity score
 
-    return np.exp(-squared_differences_sum)
+    return np.exp(-mse)
 
 
 

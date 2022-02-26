@@ -106,10 +106,12 @@ def offsets_metric_similarity(audio1, audio2, metric1, metric2):
 
         squared_errors_sum += (closest[0] - onset_offset1) ** 2 + (closest[1] - onset_strength1) ** 2
 
+    mse = squared_errors_sum / len(shorter_metric)
 
-    # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
 
-    return np.exp(-squared_errors_sum)
+    # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-mse) to get our metric
+
+    return np.exp(-mse)
 
 
 

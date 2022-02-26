@@ -75,30 +75,67 @@ def chroma_metric_similarity(audio1, audio2, metric1, metric2):
     returns: a number between 0 and 1 representing the similarity between the two metrics
     """
 
-    # again, like timbre/dynamics, we take the sum of squared errors, where the error between two chroma profiles is the sum of the squared errors of each of the pitch classes
+    # the way this works is we take the sum of squared errors at each beat time.
+
+    beat_times1 = audio1.get_beat_times()
+    beat_times2 = audio2.get_beat_times()
+
+    # truncate to the shortest, in case they are different lengths
+    truncated_length = min(len(beat_times1), len(beat_times2))
+
+    truncated_beat_times1 = beat_times1[:truncated_length]
+    truncated_beat_times2 = beat_times2[:truncated_length]
 
     window_advance1, chroma_array1 = metric1
     window_advance2, chroma_array2 = metric2
 
-    # now we truncate the end
+    # now convert each beat time into a window position
 
-    truncated_length = min(len(chroma_array1), len(chroma_array2))
-    chroma_array1 = chroma_array1[:truncated_length]
-    chroma_array2 = chroma_array2[:truncated_length]
+    window_beat_times1 = [int(beat_time / window_advance1) for beat_time in truncated_beat_times1]
+    window_beat_times2 = [int(beat_time / window_advance2) for beat_time in truncated_beat_times2]
 
-    # then we normalise to the highest value between the two 
-    highest_value = max(np.amax(chroma_array1), np.amax(chroma_array2))
-    chroma_array1 = chroma_array1 / highest_value
-    chroma_array2 = chroma_array2 / highest_value
+    #then, get the metric values at each of the windows
 
-    # now calculate the error within each pcp
-    pcp_errors = np.sum((chroma_array1 - chroma_array2) ** 2, axis=1)
+    # we don't do the np indexing because sometimes our beat time is too late in the audio for there to be a window
 
-    squared_errors_sum = np.sum(pcp_errors)
+    pcp_at_beats1 = []
+    pcp_at_beats2 = []
 
-    # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
+    for i in range(truncated_length):
+        if i < len(chroma_array1) and i < len(chroma_array2):
+            pcp_at_beats1.append(chroma_array1[i])
+            pcp_at_beats2.append(chroma_array2[i])
+        else:
+            break
 
-    return np.exp(-squared_errors_sum)
+    # turn into np array later to avoid expensive copying
+    pcp_at_beats1 = np.array(pcp_at_beats1)
+    pcp_at_beats2 = np.array(pcp_at_beats2)
+
+
+    # now calculate the sum of squared differences
+    squared_differences_sum = np.sum((pcp_at_beats1 - pcp_at_beats2)**2)
+
+    # now, we divide by the number of elements in our array to get the average squared difference sum
+
+    # we need this or longer signals get really low squared difference sum values
+    mse = squared_differences_sum / truncated_length
+
+    # when signals are identical, this value is 0 (similarity=1), and can grow to be infinitely large, and the similarity should taper to 0
+
+    # so, we apply exp(-x) to get similarity
+    return np.exp(-mse)
+
+
+
+
+
+
+
+
+
+            
+
 
     
 

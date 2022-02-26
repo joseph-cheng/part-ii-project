@@ -333,14 +333,16 @@ def tempo_metric_similarity(audio1, audio2, metric1, metric2):
 
 
 
-    beat_times1 = metric1[:min(len(metric1), len(metric2))]
-    beat_times2 = metric2[:min(len(metric1), len(metric2))]
+    beat_diffs1 = metric1[:min(len(metric1), len(metric2))]
+    beat_diffs2 = metric2[:min(len(metric1), len(metric2))]
 
-    squared_errors_sum = np.sum((beat_times1 - beat_times2) ** 2)
+    squared_errors_sum = np.sum((beat_diffs1 - beat_diffs2) ** 2)
+
+    mse = squared_errors_sum / len(beat_diffs1)
 
     # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
 
-    return np.exp(-squared_errors_sum)
+    return np.exp(-mse)
 
     
 

@@ -61,7 +61,7 @@ def calculate_metrics(audio, metric_flags):
             print(f"Calculating {METRIC_STRINGS[metric]} metric...")
             # check if cached
             cached_metric = audio.get_cached_metric(metric)
-            if cached_metric != None:
+            if cached_metric is not None:
                 calculated_metrics[metric] = cached_metric
             else:
                 metric_function = METRIC_FUNCTIONS[metric]
