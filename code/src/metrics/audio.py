@@ -29,14 +29,14 @@ class Audio:
 
     def get_onset_function(self):
         if self.onset_function is None:
-            self.onset_function = tempo.calculate_onset_func(self)
+            self.onset_function = tempo.TempoCalculator.calculate_onset_func(self)
             return self.onset_function
         else:
             return self.onset_function
 
     def get_beat_times(self):
         if self.beat_times is None:
-            self.beat_times = tempo.calculate_beats(self)
+            self.beat_times = tempo.TempoCalculator.calculate_beats(self)
             return self.beat_times
         else:
             return self.beat_times

@@ -5,47 +5,28 @@ import offsets
 import tempo
 import timbre
 
-CHROMA = 2**0
-DYNAMICS = 2**1
-OFFSETS = 2**2
-TEMPO = 2**3
-TIMBRE = 2**4
 
-METRIC_FUNCTIONS = {
-    CHROMA:   chroma.calculate_chroma_metric,
-    DYNAMICS: dynamics.calculate_dynamics_metric,
-    OFFSETS:  offsets.calculate_offsets_metric,
-    TEMPO:    tempo.calculate_tempo_metric,
-    TIMBRE:   timbre.calculate_timbre_metric,
-}
+METRICS = [
+        chroma.ChromaCalculator(),
+        dynamics.DynamicsCalculator(),
+        offsets.OffsetsCalculator(),
+        tempo.TempoCalculator(),
+        timbre.TimbreCalculator(),
+        ]
+           
 
-SIMILARITY_FUNCTIONS = {
-    CHROMA:   chroma.chroma_metric_similarity,
-    DYNAMICS: dynamics.dynamics_metric_similarity,
-    OFFSETS:  offsets.offsets_metric_similarity,
-    TEMPO:    tempo.tempo_metric_similarity,
-    TIMBRE:   timbre.timbre_metric_similarity,
-}
-
-METRIC_STRINGS = {
-    CHROMA:   "CHROMA",
-    DYNAMICS: "DYNAMICS",
-    OFFSETS:  "OFFSETS",
-    TEMPO:    "TEMPO",
-    TIMBRE:   "TIMBRE",
-}
-
+# we cache audio objects because audio objects contain their own cached information which we don't want to just throw away, better solution would be to cache these in util.py
 CACHED_AUDIOS = {}
 
 
-def calculate_metrics(audio, metric_flags):
+def calculate_metrics(audio, metrics):
     """
     Calculates the chosen metrics for a particular piece of audio
 
     audio: either a string representing a path to a wavfile, or an Audio object
-    metric_flags: binary flags of the metrics to calculate
+    metric_flags: list of MetricCalculators
 
-    returns: a dictionary of the calculated metrics, indexed by metric flag
+    returns: a dictionary of the calculated metrics, indexed by MetricCalculator
     """
 
     calculated_metrics = {}
@@ -56,29 +37,27 @@ def calculate_metrics(audio, metric_flags):
             CACHED_AUDIOS[audio] = util.read_audio(audio)
         audio = CACHED_AUDIOS[audio]
 
-    for metric in METRIC_FUNCTIONS:
-        if metric & metric_flags:
-            print(f"Calculating {METRIC_STRINGS[metric]} metric...")
-            # check if cached
-            cached_metric = audio.get_cached_metric(metric)
-            if cached_metric is not None:
-                calculated_metrics[metric] = cached_metric
-            else:
-                metric_function = METRIC_FUNCTIONS[metric]
-                calculated_metric = metric_function(audio)
-                calculated_metrics[metric] = calculated_metric
-                audio.cache_metric(metric, calculated_metric)
+    for metric in metrics:
+        print(f"Calculating {metric} metric...")
+        # check if cached
+        cached_metric = audio.get_cached_metric(metric)
+        if cached_metric is not None:
+            calculated_metrics[metric] = cached_metric
+        else:
+            calculated_metric = metric.calculate_metric(audio)
+            calculated_metrics[metric] = calculated_metric
+            audio.cache_metric(metric, calculated_metric)
 
     return calculated_metrics
 
 
-def get_most_similar(unknown_audio, other_audios, metric_flags):
+def get_most_similar(unknown_audio, other_audios, metrics):
     """
     Finds the most similar audio to an unknown audio, using the given metric flags.
 
     unknown_audio: Audio object, or string representing path, of the audio we want to find the most similar performer to
     other_audios: list of Audio objects, or string representing path, to compare unknown_audio to
-    metric_flags: bitmask representing the metrics to use
+    metrics: list of MetricCalculators
 
     returns: a (similarity, Audio) tuple, where similarity is the calculated similarity, and Audio is the most similar Audio object in other_audios
     """
@@ -104,22 +83,23 @@ def get_most_similar(unknown_audio, other_audios, metric_flags):
 
     print("Calculating metrics...")
 
-    unknown_audio_metrics = calculate_metrics(unknown_audio, metric_flags)
+    unknown_audio_metrics = calculate_metrics(unknown_audio, metrics)
 
-    other_audios_metrics = []
+    # dict of metrics indexed by audio
+    other_audios_metrics = {}
     for other_audio in other_audios_objs:
-        other_audios_metrics.append(
-            calculate_metrics(other_audio, metric_flags))
+        other_audios_metrics[other_audio] = calculate_metrics(other_audio, metrics)
 
     print("Calculating similarities...")
     similarities = []
-    for metrics, other_audio in zip(other_audios_metrics, other_audios_objs):
+    
+    for other_audio in other_audios_metrics:
         similarity_sum = 0
-        for metric_enum in metrics:
-            metric_value = metrics[metric_enum]
-            unknown_audio_metric_value = unknown_audio_metrics[metric_enum]
-            similarity_function = SIMILARITY_FUNCTIONS[metric_enum]
-            similarity = similarity_function(
+        metrics = other_audios_metrics[other_audio]
+        for metric in metrics:
+            metric_value = metrics[metric]
+            unknown_audio_metric_value = unknown_audio_metrics[metric]
+            similarity = metric.calculate_similarity(
                 unknown_audio, other_audio, unknown_audio_metric_value, metric_value)
             similarity_sum += similarity
 

@@ -1,6 +1,7 @@
 import metric_calculator
 import os
 import os.path
+import itertools
 
 data_dir = "../../res/data"
 
@@ -38,11 +39,16 @@ def get_files(data_dir):
 
     return file_dict
 
-def evaluate_metrics(data_dir, metric_flags):
-    print("Evaluating metrics:")
-    for metric in metric_calculator.METRIC_STRINGS:
-        if metric & metric_flags:
-            print(metric_calculator.METRIC_STRINGS[metric])
+def evaluate_metrics(data_dir, metrics):
+    """
+    Evaluates a set of metrics on all of the files in a directory
+
+    data_dir: string of path to data directory
+    metrics: list of MetricCalculators
+
+    returns: float from 0-1 representing percentage of trials guessed correctly
+    """
+    print(f"Evaluating metrics: {metrics}")
 
     files = get_files(data_dir)
 
@@ -70,7 +76,7 @@ def evaluate_metrics(data_dir, metric_flags):
                         other_performances.append(files[piece][performer][performance])
 
             print(f"Using {chosen_performance}...")
-            similarity, detected_performance_path = metric_calculator.get_most_similar(chosen_performance.path, [p.path for p in other_performances], metric_flags)
+            similarity, detected_performance_path = metric_calculator.get_most_similar(chosen_performance.path, [p.path for p in other_performances], metrics)
 
             detected_performance = None
 
@@ -94,7 +100,9 @@ def evaluate_metrics(data_dir, metric_flags):
 
 metric_results = {}
 
-for metric_combination in range(1, sum(metric_calculator.METRIC_STRINGS.keys()) + 1):
+metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+
+for metric_combination in metric_combinations:
     metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
 
 print(metric_results)
