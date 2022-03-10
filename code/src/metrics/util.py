@@ -33,3 +33,4 @@ def moving_average(data, n):
 
     ret[n-1:] = ret[n-1:] / n
     return ret
+

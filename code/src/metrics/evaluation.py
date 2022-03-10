@@ -1,21 +1,51 @@
 import metric_calculator
+import util
 import os
 import os.path
 import itertools
+import noise
+import reverb
+
+TRANSFORMS = [
+        noise.Noise("../../res/noise/room.wav"),
+        reverb.Reverb("../../res/irs/studio.wav")
+]
 
 data_dir = "../../res/data"
 
 class Performance:
-    def __init__(self, performer, piece, performance_number, path):
+    def __init__(self, performer, piece, performance_number, audio, path):
+        """
+        performer: identifier representing a performer
+        piece: name of piece
+        performance: number representing which performance it was
+        audio: an Audio object of the performance, we don't read this in straight from path in case we apply a transform
+        path: path to the original audio source
+        """
         self.performer = performer
         self.piece = piece
         self.performance_number = performance_number
+        self.audio = audio
         self.path = path
+
 
     def __repr__(self):
         return f"Performer: {self.performer}, Piece: {self.piece}, Performance: {self.performance_number}"
 
-def get_files(data_dir):
+
+# cache of audios already found in get_files, maps (path, transforms) tuples to audio objects
+# need this or we recreate the Audio objects on each call of evaluate_metrics, losing caching
+AUDIO_CACHE = {}
+
+def get_files(data_dir, transforms=[]):
+    """
+    processes file names in a directory according to the filename format i use: "participant_{participant number}_{piece name}_{performance number}.wav"
+
+    data_dir: path to the directory containing the performance files
+    transforms: list of Transformations to apply to each audio file, defaults to []
+
+    returns: a dictionary indexed by piece name, participant number, then performance number, containing Performance objects.
+    """
     files = [f for f in os.listdir(data_dir) if os.path.isfile(os.path.join(data_dir, f))]
     # nested dictionary of Performances, indexed by piece (name), then performer (number), then performance (number)
     file_dict = {}
@@ -28,7 +58,17 @@ def get_files(data_dir):
         performance_number = int(filename_l[3][0])
         full_path = os.path.join(data_dir, filename)
 
-        performance = Performance(participant_number, piece_name, performance_number, full_path)
+        audio = AUDIO_CACHE.get((full_path, tuple(transforms)))
+        if audio == None:
+            # read the audio data
+            audio = util.read_audio(full_path)
+            # apply transforms repeatedly
+            for transform in transforms:
+                audio = transform.apply(audio)
+
+            AUDIO_CACHE[full_path, tuple(transforms)] = audio
+
+        performance = Performance(participant_number, piece_name, performance_number, audio, full_path)
 
         # enter default values, maybe use defaultdict? probs doesn't matter
         if piece_name not in file_dict:
@@ -39,18 +79,20 @@ def get_files(data_dir):
 
     return file_dict
 
-def evaluate_metrics(data_dir, metrics):
+def evaluate_metrics(data_dir, metrics, transforms=[]):
     """
     Evaluates a set of metrics on all of the files in a directory
 
     data_dir: string of path to data directory
     metrics: list of MetricCalculators
+    transforms: list of Transformations that are applied to each performance audio, defaults to []
 
     returns: float from 0-1 representing percentage of trials guessed correctly
     """
     print(f"Evaluating metrics: {metrics}")
+    print(f"Using transforms: {transforms}")
 
-    files = get_files(data_dir)
+    files = get_files(data_dir, transforms=transforms)
 
     total_trials = 0
     total_correct = 0
@@ -68,7 +110,7 @@ def evaluate_metrics(data_dir, metrics):
             print(performance_num)
             for performer in files[piece]:
                 for performance in files[piece][performer]:
-                    # this relies on the fact that performer and performance are just numbers
+                    # this relies on the fact that performer and performance are just numbers and sensibly named
                     print(performer, performance)
                     if (performer-1)*2 + performance == performance_num:
                         chosen_performance = files[piece][performer][performance]
@@ -76,13 +118,13 @@ def evaluate_metrics(data_dir, metrics):
                         other_performances.append(files[piece][performer][performance])
 
             print(f"Using {chosen_performance}...")
-            similarity, detected_performance_path = metric_calculator.get_most_similar(chosen_performance.path, [p.path for p in other_performances], metrics)
+            similarity, detected_performance_audio = metric_calculator.get_most_similar(chosen_performance.audio, [p.audio for p in other_performances], metrics)
 
             detected_performance = None
 
             # find matching Performance for detected_performance_path
             for performance in other_performances:
-                if performance.path == detected_performance_path:
+                if performance.audio == detected_performance_audio:
                     detected_performance = performance
                     break
 
