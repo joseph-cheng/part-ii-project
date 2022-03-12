@@ -1,9 +1,9 @@
 import util
-import chroma
-import dynamics
-import offsets
-import tempo
-import timbre
+import metrics.chroma as chroma
+import metrics.dynamics as dynamics
+import metrics.offsets as offsets
+import metrics.tempo as tempo
+import metrics.timbre as timbre
 
 
 METRICS = [

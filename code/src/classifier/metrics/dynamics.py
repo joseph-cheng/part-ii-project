@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import metric
+import metrics.metric as metric
 
 
 class DynamicsCalculator(metric.MetricCalculator):

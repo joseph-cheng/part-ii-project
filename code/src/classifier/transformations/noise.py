@@ -1,8 +1,8 @@
-import transformation
-from audio import Audio
 import numpy as np
 import scipy.io.wavfile
+import audio
 import util
+import transformations.transformation as transformation
 
 class Noise(transformation.Transformation):
     def __init__(self, noise, crossfade=0.5):
@@ -14,19 +14,19 @@ class Noise(transformation.Transformation):
         self.noise = util.read_audio(noise).signal
         self.crossfade = crossfade
 
-    def apply(self, audio, out=None):
+    def apply(self, audio_obj, out=None):
         """
         adds background noise to a signal, using pre-recorded noise
 
-        audio: Audio object containing the file to apply noise to
+        audio_obj: Audio object containing the file to apply noise to
         out: optionally a path to where a wav file of the noise-added-audio should be saved
 
         returns: an Audio object containing the noise-added-audio
         """
 
-        signal = audio.signal
+        signal = audio_obj.signal
         # we naively interpret the noise's sample rate as the same as the audios, probably fine
-        sample_rate = audio.sample_rate
+        sample_rate = audio_obj.sample_rate
 
         # might need to repeat noise if it is not long enough, or truncate it if it is too long
         length_matched_noise = self.noise
@@ -52,7 +52,7 @@ class Noise(transformation.Transformation):
         if out != None:
             scipy.io.wavfile.write(out, sample_rate, noisy_signal)
 
-        return Audio(noisy_signal, sample_rate)
+        return audio.Audio(noisy_signal, sample_rate)
 
     def __repr__(self):
         return f"Noise | path: {self.noise_path} | crossfade: {self.crossfade}"

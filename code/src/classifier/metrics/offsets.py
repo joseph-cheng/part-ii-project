@@ -1,7 +1,7 @@
 import util
 import numpy as np
 import matplotlib.pyplot as plt
-import metric
+import metrics.metric as metric
 
 class OffsetsCalculator(metric.MetricCalculator):
     def __init__(self):

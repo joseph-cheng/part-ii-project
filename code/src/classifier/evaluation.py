@@ -1,10 +1,10 @@
-import metric_calculator
+import metrics.metric_calculator as metric_calculator
 import util
 import os
 import os.path
 import itertools
-import noise
-import reverb
+import transformations.noise as noise
+import transformations.reverb as reverb
 
 TRANSFORMS = [
         noise.Noise("../../res/noise/room.wav"),
@@ -140,14 +140,15 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
     return total_correct/total_trials
 
 
-metric_results = {}
+if __name__ == "__main__":
+    metric_results = {}
 
-metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+    metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
 
-for metric_combination in metric_combinations:
-    metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
+    for metric_combination in metric_combinations:
+        metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
 
-print(metric_results)
+    print(metric_results)
 
 
 

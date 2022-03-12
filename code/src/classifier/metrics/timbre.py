@@ -1,8 +1,7 @@
 import scipy.fft
 import matplotlib.pyplot as plt
 import numpy as np
-import tempo
-import metric
+import metrics.metric as metric
 
 class TimbreCalculator(metric.MetricCalculator):
     def __init__(self, window_size=0.3):

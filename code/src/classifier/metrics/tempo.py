@@ -2,9 +2,9 @@ import numpy as np
 import scipy.fft
 import scipy.signal.windows
 import scipy.signal
-import timbre
+import metrics.timbre as timbre
 import matplotlib.pyplot as plt
-import metric
+import metrics.metric as metric
 
 class OnsetFunction:
     def __init__(self, data, window_advance, sample_rate):
