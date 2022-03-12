@@ -13,20 +13,60 @@
 \fi
 \resetfigpath{implementation}
 
+In this chapter, we discuss the software that was produced during this project. We begin by discussing the structure of the project at a high-level, and then cover the high-level structure of the source code repository. Then, we detail and justify the algorithms used for the metric calculators, similarity scorers, and transformations.
 
-\begin{minipage}{\textwidth}
+\section{Project Structure}
+
+The project consists of two major components: data synthesis and the classifier. The data synthesis module is relatively simple, and was only of use for early testing stages of the project where real-world data was not available. Because of this, we only briefly discuss the data synthesis component.
+
+A diagram outlining the structure of the data synthesis component is given in Figure \ref{fig:datasynthesisflow}. A MusicXML score is passed into the parser, which converts the score into a more useful form for audio generation. This parsed score, along with a pianist profile fed with some parameters, are passed into an audio generation component, which applies slight modifications to the score based on the pianist profile, and finally synthesises the audio as a WAV file.
+
+\begin{figure}[h]
   \centering
   \begin{tikzpicture}[
   squarednode/.style={rectangle, draw=black!100, fill=black!10, very thick, minimum size=6.5mm},
+  datanode/.style={rectangle, draw=black!100, fill=black!0, very thick, minimum size=6.5mm},
   ]
   %Nodes
-  \foreach \x in {2.0, 2.1, 2.2}\node[squarednode] at (\x, \x) (knownrecordings) {Known recordings};
+  \node[datanode] (mxl) {MusicXML Score};
+  \node[squarednode] (mxlparser) [right= of mxl] {MusicXML Parser};
+  \node[squarednode] (profile) [below= 2.5cm of mxlparser] {Pianist Profile};
+  \node[datanode] (tempoenvelope) [below left=of profile] {Tempo Envelope};
+  \node[datanode] (amplitudedist) [below= 2 of profile] {Amplitude Distribution};
+  \node[datanode] (accuracy) [below right=  of profile] {Timing Accuracy};
+  \node[squarednode] (audiogenerator) [below right=of mxlparser] {Audio Generator};
+  \node[datanode] (audio) [right= of audiogenerator] {Audio};
+
+  \draw[->] (mxl.east) -- (mxlparser.west);
+  \draw[->] (tempoenvelope.east) -| ([xshift=-5pt]profile.south);
+  \draw[->] (amplitudedist.north) -- (profile.south);
+  \draw[->] (accuracy.west) -| ([xshift=5pt]profile.south);
+  \draw[->] (mxlparser.south) |- ([yshift=3pt]audiogenerator.west);
+  \draw[->] (profile.north) |- ([yshift=-3pt]audiogenerator.west);
+  \draw[->] (audiogenerator.east) -- (audio.west);
+  \end{tikzpicture}
+  \caption{Flowchart of the data synthesis component}
+  \label{fig:datasynthesisflow}
+    
+\end{figure}
+
+
+A diagram outlining the structure of the classifier is given in Figure \ref{fig:classifierflow}. Known recordings are passed into the metric calculators, and their metrics stored. To find the performer of an unknown recording, we calculate its metrics, and compare these to the metrics of the known performances using the similarity scorer. We take the most similar performance, and that gives us our performer.
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}[
+  squarednode/.style={rectangle, draw=black!100, fill=black!10, very thick, minimum size=6.5mm},
+  datanode/.style={rectangle, draw=black!100, fill=black!0, very thick, minimum size=6.5mm},
+  ]
+  %Nodes
+  \foreach \x in {2.0, 2.1, 2.2}\node[datanode] at (\x, \x) (knownrecordings) {Known recordings};
   \node[squarednode]      (metriccalculators1)       [right= of knownrecordings] {Metric calculators};
   \node[database, label=left:Stored Metrics, database radius=0.75cm, database segment height=0.375cm]         (storedmetrics)            [below=of metriccalculators1] {};
   \node[squarednode]      (metriccalculators2) [below= 2.5cm of storedmetrics] {Metric calculators};
-  \node[squarednode]      (unknownrecording)  [left= of metriccalculators2] {Unknown recording};
-  \node[squarednode]      (similaritycalculator) [below right= 1cm and 2cm of storedmetrics] {Similarity calculator};
-  \node[squarednode]       (performer) [right= of similaritycalculator] {Performer};
+  \node[datanode]      (unknownrecording)  [left= of metriccalculators2] {Unknown recording};
+  \node[squarednode]      (similaritycalculator) [below right= 1cm and 2cm of storedmetrics] {Similarity scorer};
+  \node[datanode]       (performer) [right= of similaritycalculator] {Performer};
 
   %Lines
   \draw[->] (knownrecordings.east) -- (metriccalculators1.west);
@@ -38,8 +78,47 @@
 
   \end{tikzpicture}
 
-\captionof{figure}{Flowchart of the core of the classifier}
-\end{minipage}
+\caption{Flowchart of the core of the classifier}
+\label{fig:classifierflow}
+\end{figure}
+
+\section{Repository Overview}
+
+A high-level overview of the repository is given in Figure \ref{fig:repositoryoverview}. A high-level distinction is made between source-code in the \texttt{src/} directory and data/resources in the \texttt{res/} directory. Within each of these directories, files are further grouped by their purpose and what component of the overall system they belong to.
+
+\begin{figure}[h]
+\begin{verbatim}
+|-- res/
+|   |-- data/
+|   |   contains all of the piano recordings
+|   |-- irs/
+|   |   contains samples of impulse responses for reverb
+|   |-- noise/
+|   |   contains samples of background noise
+|   |-- scores/
+|   |   contains MusicXML scores
+|   `-- soundfonts/
+|       contains soundfonts for data synthesis
+`-- src/
+    |-- classifier/
+    |   |   contains a variety of utility files
+    |   |-- metrics/
+    |   |   contains metric calculators and similarity scorers
+    |   `-- transformations/
+    |       contains transformation implementations
+    `-- data_synthesis/
+        contains all of the data synthesis implementation
+\end{verbatim}
+\caption{Repository overview}
+\label{fig:repositoryoverview}
+\end{figure}
+
+All of the code was written by the dissertation author. All files in the \texttt{res/data/} directory were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
+
+Files in the \texttt{irs/} directory were taken from the University of York's \href{https://www.openair.hosted.york.ac.uk/}{OpenAir} project under the \href{https://creativecommons.org/licenses/by/4.0/}{Creative Commons 4.0 License}.
+
+All other files were taken using the Creative Commons 1.0 license.
+
 
 \ifstandalone
   \printbibliography
