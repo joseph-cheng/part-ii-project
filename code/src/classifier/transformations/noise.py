@@ -5,13 +5,16 @@ import util
 import transformations.transformation as transformation
 
 class Noise(transformation.Transformation):
-    def __init__(self, noise, crossfade=0.5):
+    def __init__(self, noise, crossfade=0.5, level=1.0):
         """
         noise: path to a wavfile containing the noise
         crossfade: time in seconds that the noise should crossfade, in case we need to repeat it. defaults to 0.5
+        level: multiplier to boost the signal by, defaults to 1
         """
         self.noise_path = noise
+        self.level = level
         self.noise = util.read_audio(noise).signal
+        self.noise *= level
         self.crossfade = crossfade
 
     def apply(self, audio_obj, out=None):
@@ -55,4 +58,4 @@ class Noise(transformation.Transformation):
         return audio.Audio(noisy_signal, sample_rate)
 
     def __repr__(self):
-        return f"Noise | path: {self.noise_path} | crossfade: {self.crossfade}"
+        return f"Noise | path: {self.noise_path} | crossfade: {self.crossfade} | level: {self.level}"

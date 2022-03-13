@@ -1,4 +1,5 @@
 import numpy as np
+import util
 import scipy.fft
 import scipy.signal.windows
 import scipy.signal
@@ -63,7 +64,12 @@ class TempoCalculator(metric.MetricCalculator):
         # this makes sure we cache the beat times
         beat_times = audio.get_beat_times()
 
-        return np.diff(beat_times)
+        diff = np.diff(beat_times)
+
+        # now we apply some smoothing to this diff such that small variations are smoothed out
+
+        # we just smooth by taking moving average, we choose 4 relatively arbitrarily, although it does correspond to the number of beats in a bar in a 4/4 time signature piece, which is the most common time signature for a lot of Western music
+        return util.moving_average(diff, 4)
 
     def calculate_similarity(self, audio1, audio2, metric1, metric2):
         """

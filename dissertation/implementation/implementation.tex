@@ -84,7 +84,7 @@ A diagram outlining the structure of the classifier is given in Figure \ref{fig:
 
 \section{Repository Overview}
 
-A high-level overview of the repository is given in Figure \ref{fig:repositoryoverview}. A high-level distinction is made between source-code in the \texttt{src/} directory and data/resources in the \texttt{res/} directory. Within each of these directories, files are further grouped by their purpose and what component of the overall system they belong to.
+A high-level overview of the repository is given in Figure \ref{fig:repositoryoverview}. A high-level distinction is made between source code in the \texttt{src/} directory and data/resources in the \texttt{res/} directory. Within each of these directories, files are further grouped by their purpose and what component of the overall system they belong to.
 
 \begin{figure}[h]
 \begin{verbatim}
@@ -115,9 +115,19 @@ A high-level overview of the repository is given in Figure \ref{fig:repositoryov
 
 All of the code was written by the dissertation author. All files in the \texttt{res/data/} directory were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
 
-Files in the \texttt{irs/} directory were taken from the University of York's \href{https://www.openair.hosted.york.ac.uk/}{OpenAir} project under the \href{https://creativecommons.org/licenses/by/4.0/}{Creative Commons 4.0 License}.
+Files in the \texttt{irs/} directory were taken from the University of York's \href{https://www.openairlib.net}{OpenAir} project under the Creative Commons 4.0 License\footnote{\url{https://creativecommons.org/licenses/by/4.0/}}.
 
 All other files were taken using the Creative Commons 1.0 license.
+
+\section{Metric Calculators}
+
+In this section we detail and justify the specific algorithms used for each of the metric calculators.
+
+\subsection{Tempo Variation Over Time}
+
+The computation of this metric builds closely on top of the beat tracking algorithm described in Section \ref{sec:beattracking}. In fact, all we do is run our beat tracking algorithm on our audio and take the first-order difference between our beat times, and then apply smoothing by taking the moving average to reduce the impact of micro-variations in note timings (which we instead capture with the note offsets metric). Being able to avoid these micro-variations is important, since this metric really intends to capture an overall view of how tempo changes over the performance of the piece, and not a microscopic view of timings within each bar, for example.
+
+
 
 
 \ifstandalone
