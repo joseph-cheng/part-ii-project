@@ -9,7 +9,7 @@ import transformations.noise as noise
 import transformations.reverb as reverb
 
 TRANSFORMS = [
-        noise.Noise("../../res/noise/room.wav", level=50.0),
+        noise.Noise("../../res/noise/room.wav", level=1.0),
         reverb.Reverb("../../res/irs/studio.wav")
 ]
 
@@ -151,15 +151,19 @@ if __name__ == "__main__":
         metric_results = {}
 
         metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+        metric_combinations = [(metric_calculator.METRICS[3],)]
         for metric_combination in metric_combinations:
-            metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination, transforms=[noise_transform])
+            metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
 
         peak_metrics.append(max(metric_results.values()))
         median_metrics.append(np.median(list(metric_results.values())))
+        print(metric_results)
 
-    plt.plot(noise_levels, peak_metrics)
-    plt.plot(noise_levels, median_metrics)
+    plt.plot(noise_levels, peak_metrics, label="Peak metric performance")
+    plt.plot(noise_levels, median_metrics, label="Median metric performance")
+    plt.legend()
     plt.show()
+
 
 
 

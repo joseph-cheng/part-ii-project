@@ -14,7 +14,7 @@ def read_audio(wavfile_path):
     if data.ndim > 1:
         # mix to mono
         data = np.mean(data, axis=1)
-    return Audio(data, rate)
+    return Audio(data, rate, name=wavfile_path)
 
 
 def moving_average(data, n):

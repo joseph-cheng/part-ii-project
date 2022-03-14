@@ -113,6 +113,8 @@ A high-level overview of the repository is given in Figure \ref{fig:repositoryov
 \label{fig:repositoryoverview}
 \end{figure}
 
+This structure allows for modularity: it is very easy to create a new metric or transformation, you simply have to extend \texttt{src/metrics/metric.py} or \texttt{src/transformations/transformation.py} appropiately.
+
 All of the code was written by the dissertation author. All files in the \texttt{res/data/} directory were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
 
 Files in the \texttt{irs/} directory were taken from the University of York's \href{https://www.openairlib.net}{OpenAir} project under the Creative Commons 4.0 License\footnote{\url{https://creativecommons.org/licenses/by/4.0/}}.
@@ -125,7 +127,27 @@ In this section we detail and justify the specific algorithms used for each of t
 
 \subsection{Tempo Variation Over Time}
 
-The computation of this metric builds closely on top of the beat tracking algorithm described in Section \ref{sec:beattracking}. In fact, all we do is run our beat tracking algorithm on our audio and take the first-order difference between our beat times, and then apply smoothing by taking the moving average to reduce the impact of micro-variations in note timings (which we instead capture with the note offsets metric). Being able to avoid these micro-variations is important, since this metric really intends to capture an overall view of how tempo changes over the performance of the piece, and not a microscopic view of timings within each bar, for example.
+The computation of this metric builds closely on top of the beat tracking algorithm described in Section \ref{sec:beattracking}. In fact, all we do is run our beat tracking algorithm on our audio and take the first-order difference between our beat times, and then apply smoothing by taking the moving average to reduce the impact of micro-variations in note timings (which we instead capture with the note offsets metric). 
+
+There were a few other choices for constructing this metric, for example instead of taking the first-order difference of our beat times, we could simply use the beat times themselves. To see the issues with this approach, suppose we have two performances that have very similar tempos in the latter half, but are different in the first half. We would like to consider these performances reasonably similar since the tempos are similar in the latter half, but by taking the absolute beat times we are unable to find any similarity since the differing tempos in the first half will offset the beat times in the latter half. Taking the first-order difference avoids this issue. Another option might be taking higher-order differences, which seems like it might have some merits. For example, a second-order difference would allow us to easily find where a piece is speeding up/slowing down as opposed to just fast/slow, but by doing this we lose the information on whether the piece actually is being played fast/slow, which isn't ideal.
+
+Furthermore, the smoothing we perform is very important. Being able to avoid these micro-variations is incredibly useful, since this metric really intends to capture an overall view of how tempo changes over the performance of the piece, and not a microscopic view of timings within each bar, for example.
+
+We are also able to tune how much of this smoothing we get on our beat time differences by changing the window size of our moving average. For our case, we choose a window size of 4 beats, which corresponds to the length of a bar (the next level up in the temporal structure of music) in most Western European music, which is what our dataset consists of.
+
+\subsubsection{Similarity Scorer}
+
+To calculate the similarity between two tempo metrics we use a technique which we will frequently see in the similarity scorers for other metrics: calculating the mean squared error. We can consider our tempo metric as being a function of beat number, returning us the time difference between the last beat. Then, to calculate the similarity between two metrics, we just take the mean squared error between these two functions (truncating the longer function if necessary), giving us a number we call $\varepsilon$.
+
+This is not yet useful as a similarity metric, however, since it can grow unboundedly large, so we return the error as $e^{-\varepsilon}$. The intuition behind the choice of this transformation is that if our two performances are the same, we expect $\varepsilon$ to be equal to 0, and thus $e^{-\varepsilon}$ will be 1. As $\varepsilon$ grows, $e^{-\varepsilon}$ will approach 0, which gives us a useful similarity metric.
+
+\subsection{Dynamics over time}
+
+
+
+
+
+
 
 
 

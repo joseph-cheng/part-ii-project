@@ -53,9 +53,10 @@ class Noise(transformation.Transformation):
 
         noisy_signal = length_matched_noise + signal
         if out != None:
-            scipy.io.wavfile.write(out, sample_rate, noisy_signal)
+            # we limit at 1.0 here to avoid clipping
+            scipy.io.wavfile.write(out, sample_rate, noisy_signal/max(noisy_signal))
 
-        return audio.Audio(noisy_signal, sample_rate)
+        return audio.Audio(noisy_signal, sample_rate, name=audio_obj.name)
 
     def __repr__(self):
         return f"Noise | path: {self.noise_path} | crossfade: {self.crossfade} | level: {self.level}"

@@ -49,8 +49,8 @@ class OnsetFunction:
 
 class TempoCalculator(metric.MetricCalculator):
     def __init__(self):
-        # just here for override
-        pass
+        # we use this for certain debugging/plotting stuff
+        self.calls = 0
 
     def calculate_metric(self, audio):
         """
@@ -60,16 +60,29 @@ class TempoCalculator(metric.MetricCalculator):
 
         returns: 1D np array of the first order difference between beat times
         """
+        self.calls += 1
 
         # this makes sure we cache the beat times
         beat_times = audio.get_beat_times()
+
 
         diff = np.diff(beat_times)
 
         # now we apply some smoothing to this diff such that small variations are smoothed out
 
         # we just smooth by taking moving average, we choose 4 relatively arbitrarily, although it does correspond to the number of beats in a bar in a 4/4 time signature piece, which is the most common time signature for a lot of Western music
-        return util.moving_average(diff, 4)
+        smoothed =  util.moving_average(diff, 4)
+
+        # PLOTTING CODE
+        #beat_graph = np.cumsum(smoothed) - ((1/audio.get_global_tempo()) * 60) * np.arange(1, len(smoothed) + 1)
+        #plt.plot(np.cumsum(smoothed), beat_graph, label=audio.name)
+        plt.plot(np.arange(0, len(smoothed)), smoothed, label=audio.name)
+        if self.calls % 8 == 7:
+            plt.xticks([])
+            plt.legend()
+            plt.show()
+
+        return smoothed
 
     def calculate_similarity(self, audio1, audio2, metric1, metric2):
         """
@@ -118,7 +131,7 @@ class TempoCalculator(metric.MetricCalculator):
 
         onset_function = audio.get_onset_function()
 
-        global_tempo = TempoCalculator.calculate_global_tempo(audio,)
+        global_tempo = audio.get_global_tempo()
         ideal_spacing = 60/global_tempo
         ideal_spacing_windows = int(ideal_spacing / advance)
         for window in range(1, int((audio.get_duration() / advance))):
@@ -166,17 +179,6 @@ class TempoCalculator(metric.MetricCalculator):
         ret = np.array([beat * advance for beat in beats])
 
 
-        """
-        # PLOTTING CODE
-        beat_graph = ret - ((1/global_tempo) * 60) * np.arange(1, len(ret) + 1)
-        plt.rcParams.update({'font.size': 30})
-        plt.plot(ret, beat_graph, label="Distance from expected beat")
-        plt.plot([0, audio.get_duration()], [0, 0])
-        plt.yticks([])
-        plt.xticks([])
-        plt.legend(loc="upper left")
-        plt.show()
-        """
 
 
 
@@ -320,13 +322,7 @@ class TempoCalculator(metric.MetricCalculator):
             auto_correlation[tau_samples] = correlation
 
 
-        # find duple and triple auto correlations to handle half/third tempos
-
-        duple_auto_correlation = 0.5 * auto_correlation + 0.5 * np.repeat(auto_correlation, 2)[:len(auto_correlation)]
-        triple_auto_correlation = 0.5 * auto_correlation + 0.5 * np.repeat(auto_correlation, 3)[:len(auto_correlation)]
-
-
-        best_tempo_samples = np.argmax(auto_correlation + duple_auto_correlation + triple_auto_correlation)
+        best_tempo_samples = np.argmax(auto_correlation)
         best_tempo = 60 / (best_tempo_samples / audio.sample_rate)
 
         return best_tempo

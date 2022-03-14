@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.io.wavfile
 import util
 import audio
 import transformations.transformation as transformation
@@ -27,7 +28,8 @@ class Reverb(transformation.Transformation):
         convolved = np.convolve(signal, self.ir)
 
         if out != None:
-            scipy.io.wavfile.write(out, sample_rate, convolved)
+            # we normalise  to max 1.0 here to avoid clipping
+            scipy.io.wavfile.write(out, sample_rate, convolved/max(convolved))
 
         return audio.Audio(convolved, sample_rate)
 

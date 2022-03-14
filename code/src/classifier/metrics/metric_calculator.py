@@ -4,6 +4,7 @@ import metrics.dynamics as dynamics
 import metrics.offsets as offsets
 import metrics.tempo as tempo
 import metrics.timbre as timbre
+import matplotlib.pyplot as plt
 
 
 METRICS = [
