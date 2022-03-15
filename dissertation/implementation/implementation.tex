@@ -13,7 +13,7 @@
 \fi
 \resetfigpath{implementation}
 
-In this chapter, we discuss the software that was produced during this project. We begin by discussing the structure of the project at a high-level, and then cover the high-level structure of the source code repository. Then, we detail and justify the algorithms used for the metric calculators, similarity scorers, and transformations.
+In this chapter, we discuss the software that was produced during this project. We begin by discussing the structure of the project at a high-level, and then cover the high-level structure of the source code repository. Then, we detail and justify the algorithms and implementation for the metric calculators, similarity scorers, and transformations.
 
 \section{Project Structure}
 
@@ -113,8 +113,6 @@ A high-level overview of the repository is given in Figure \ref{fig:repositoryov
 \label{fig:repositoryoverview}
 \end{figure}
 
-This structure allows for modularity: it is very easy to create a new metric or transformation, you simply have to extend \texttt{src/metrics/metric.py} or \texttt{src/transformations/transformation.py} appropiately.
-
 All of the code was written by the dissertation author. All files in the \texttt{res/data/} directory were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
 
 Files in the \texttt{irs/} directory were taken from the University of York's \href{https://www.openairlib.net}{OpenAir} project under the Creative Commons 4.0 License\footnote{\url{https://creativecommons.org/licenses/by/4.0/}}.
@@ -124,6 +122,24 @@ All other files were taken using the Creative Commons 1.0 license.
 \section{Metric Calculators}
 
 In this section we detail and justify the specific algorithms used for each of the metric calculators.
+
+The structure of this implementation is designed around modularity: it should be easy to create new metric calculators and have them evaluated. For this, we want each metric calculator to implement a function that calculates a metric given some audio, and a function that calculates the similarity between two metrics. To do this, we define a class \texttt{MetricCalculator} in \texttt{src/classifier/metrics/metric.py} with three functions: \texttt{\_\_init\_\_()} (a constructor), \texttt{calculate\_metric(audio)}, and \texttt{calculate\_similarity(audio1, audio2, metric1, metric2)}. Python3 does not support abstract/virtual methods, so we instead define each of these functions to raise a \texttt{NotImplementedError} on call, forcing all classes that inherit from it to override these methods.
+
+
+\begin{itemize}
+  \item
+The \texttt{\_\_init\_\_()} method allows the user to pass parameters to a metric calculator (like window advance/size), such that each call to the calculations uses the same parameters.
+
+\item
+  The \texttt{calculate\_metric(audio)} method takes as a parameter an \texttt{Audio} object (which essentially holds a signal, some extra metadata like sample rate and name, and caches metrics for faster evaluation times), which should be all it needs to calculate a metric.
+
+\item
+  The \texttt{calculate\_similarity(audio1, audio2, metric1, metric2)} method takes as parameter two \texttt{Audio} objects and two metrics, the form of which whoseis defined by the return value of the \texttt{calculate\_metric(audio)} method.
+
+  The reason we need the \texttt{audio1} and \texttt{audio2} parameters is because the audio objects can be used to calculate important information, like the beat timings, so that we can meaningfully compare different metrics.
+\end{itemize}
+
+To create a new metric calculator, you simply define a class that inherits from \texttt{MetricCalculator} and override the functions with appropiate method definitions.
 
 \subsection{Tempo Variation Over Time}
 
