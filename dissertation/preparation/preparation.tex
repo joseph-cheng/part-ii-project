@@ -288,7 +288,7 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
 
 
 
-\section{Data Collection}
+ \section{Data Collection}\ref{sec:datacollection}
 
 
 To evaluate the project, first-hand data had to be collected. The system requires multiple performances of the same piece by the same pianist, and generally performers tend to only ever upload one performance of a piece. This meant that I had to find both performers and pieces for them to perform, so that I could record them. Overall, there were 5 performers, each performing 4 pieces twice.
@@ -306,7 +306,7 @@ The pieces were chosen to be not too difficult, such that performers could learn
 
 This selection of pieces also intends to cover a range of different techniques, e.g. `Prelude in C Major' has many fast notes in succession, whereas `Sweden' has slow chords.
 
-Recordings were made by using a Kawai ES110 digital piano, recording directly into a computer, such that no noise or distortion from a microphone is present in the recordings.
+Recordings were made by using a Kawai ES110 digital piano, recording directly into a computer, such that no noise or distortion from a microphone is present in the recordings. Furthermore, the recordings were manually edited to remove silence at the beginning and end.
 
 \section{Metric Choice}
 
@@ -329,7 +329,7 @@ There are 5 metrics we use in this project, recall from Chapter \ref{chapter:int
         Timbre extraction
 \end{itemize}
 
-The data we have available to us is what informs these particular metric choices. A key factor is that we are dealing with raw audio signals, and not a symbolic representation like seen in previous work \cite{bernays14}. This means that certain luxuries are not afforded to us, like the ability to precisely see where note-ons and note-offs are, or the exact notes that are played, or where the sustain pedal is used. These choices were also informed by my own experience of playing and listening to solo piano music (note to John: is this point a good enough justification? Or do I need to find research that supports these metric choices more).
+The data we have available to us is what informs these particular metric choices. A key factor is that we are dealing with raw audio signals, and not a symbolic representation like seen in previous work \cite{bernays14}. This means that certain luxuries are not afforded to us, like the ability to precisely see where note-ons and note-offs are, or the exact notes that are played, or where the sustain pedal is used. These choices were also informed by my own experience of playing and listening to solo piano music.
 
 For example, with raw audio recordings we can make guesses at where notes are played (tempo variation over time, note offsets), and what notes are being played (chroma vector extraction), but we cannot know with certainty.
 
