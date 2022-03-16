@@ -85,6 +85,33 @@ class TimbreCalculator(metric.MetricCalculator):
         return 700 * (10 ** (to_convert / 2595) - 1)
 
 
+    def calculate_band_freqs(sample_rate, num_filters=40):
+        """
+        Calculates the middle of each of the mel bands in Hertz
+
+        sample_rate: sample rate of the audio
+        num_filters: number of mel filters to use
+
+        returns: a num_filters length np array containing the middle of each of the mel bands in Hertz
+        """
+        lowest_freq = 0
+        # highest frequency we get is half the sample rate
+        highest_freq_hertz = sample_rate/2
+        highest_freq = TimbreCalculator.hertz_to_mel(highest_freq_hertz)
+
+        # we add two for off by one
+        mel_bands = np.linspace(lowest_freq, highest_freq, num=num_filters+2)
+        hertz_bands = TimbreCalculator.mel_to_hertz(mel_bands)
+        middles = np.zeros(num_filters)
+        for i in range(1, len(hertz_bands)-1):
+            bottom = hertz_bands[i-1]
+            top = hertz_bands[i]
+            middles[i-1] = (top + bottom) / 2
+
+        return middles
+
+
+
     def spectrum_to_mel_bands(spectrum, sample_rate, num_filters=40):
         """
         Converts a spectrum to mel bands
@@ -155,3 +182,4 @@ class TimbreCalculator(metric.MetricCalculator):
 
     def __repr__(self):
         return "Timbre"
+

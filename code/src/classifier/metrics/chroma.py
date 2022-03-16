@@ -41,6 +41,15 @@ class ChromaCalculator(metric.MetricCalculator):
         max_val = np.amax(chroma_array)
         chroma_array = chroma_array / max_val
 
+        """
+        # PLOTTING CODe
+        plt.rcParams.update({'font.size': 30})
+        plt.pcolormesh(chroma_array.transpose())
+        plt.yticks(np.arange(0, 12)+0.5, ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"])
+        plt.xticks([])
+        plt.show()
+        """
+
         return chroma_array
 
     def calculate_similarity(self, audio1, audio2, metric1, metric2):
@@ -123,7 +132,8 @@ class ChromaCalculator(metric.MetricCalculator):
 
         ret = np.zeros(12)
 
-        for pitch in range(128):
+        # corresponds to lowest/highest notes on a piano
+        for pitch in range(21, 109):
             lower_frequency = int(2 ** ((pitch - 0.5 - 69)/12) * 440)
             upper_frequency = int(2 ** ((pitch + 0.5 - 69)/12) * 440)
 

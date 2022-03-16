@@ -143,6 +143,7 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 
 
 if __name__ == "__main__":
+    """
     noise_levels = np.linspace(0.0, 40.0, 20)
     peak_metrics = []
     median_metrics = []
@@ -151,7 +152,7 @@ if __name__ == "__main__":
         metric_results = {}
 
         metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
-        metric_combinations = [(metric_calculator.METRICS[3],)]
+        metric_combinations = [(metric_calculator.METRICS[1],)]
         for metric_combination in metric_combinations:
             metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
 
@@ -163,6 +164,14 @@ if __name__ == "__main__":
     plt.plot(noise_levels, median_metrics, label="Median metric performance")
     plt.legend()
     plt.show()
+    """
+    metric_results = {}
+
+    metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+    for metric_combination in metric_combinations:
+        metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
+
+    print(metric_results)
 
 
 

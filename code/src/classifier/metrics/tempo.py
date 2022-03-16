@@ -73,6 +73,8 @@ class TempoCalculator(metric.MetricCalculator):
         # we just smooth by taking moving average, we choose 4 relatively arbitrarily, although it does correspond to the number of beats in a bar in a 4/4 time signature piece, which is the most common time signature for a lot of Western music
         smoothed =  util.moving_average(diff, 4)
 
+
+        """
         # PLOTTING CODE
         #beat_graph = np.cumsum(smoothed) - ((1/audio.get_global_tempo()) * 60) * np.arange(1, len(smoothed) + 1)
         #plt.plot(np.cumsum(smoothed), beat_graph, label=audio.name)
@@ -81,6 +83,7 @@ class TempoCalculator(metric.MetricCalculator):
             plt.xticks([])
             plt.legend()
             plt.show()
+        """
 
         return smoothed
 
