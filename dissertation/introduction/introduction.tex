@@ -60,7 +60,14 @@ In total, the project implements five metrics:
   \item
     Chroma vector extraction:
 
-    This metric tries to track what notes are being played at a given time, by observing the power in frequency bands corresponding to each note.
+    This metric tries to track what notes are being played at a given time, by observing the power in frequency bands corresponding to each note. Figure \ref{figure:chromaplot} visualises this metric by plotting the frequency content for each note over time
+
+    \begin{minipage}{\textwidth}
+      \centering
+      \includegraphics[scale=0.3]{chromaplot}
+      \captionof{figure}{Chroma vector over time}\label{figure:chromaplot}
+        
+    \end{minipage}
 
   \item
     Note offsets:
