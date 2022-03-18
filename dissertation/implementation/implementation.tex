@@ -282,6 +282,7 @@ To calculate a chroma vector, we look at the frequency content of our signal, an
 
 \subsubsection{Similarity Scorer}
 
+
 We again apply similar techniques as used in other similarity scorers: truncating to the shorter metric length, calculating the mean squared error between the two metrics, and applying the negative exponential function.
 
 There is one major difference between this similarity scorere and others, however. For the chroma similarity, we only compare the metric at the detected beat times. This has some benefits over the naive method of just taking the mean squared error over the entire metric. If we use the naive method, then when we compare the metrics, we may be comparing different parts of the piece entirely since the tempos of the two performances are likely to differ. By ensuring that we only compare the metrics at each beat time, we can be certain that we are comparing the metrics meaningfully.
@@ -290,11 +291,36 @@ There are some downsides to this approach. For example, if a note is held for a 
 
 
 
+\subsection{Note offsets}
+
+This metric is implemented in the \texttt{src/classifier/metrics/offsets.py} file.
+
+This metric tries to capture microvariations in rhythm from a performer, in some sense how `accurate' their playing of notes is. Unlike the other metrics that generate some kind of function/curve from the audio signal, this metric instead works by modelling the performer's microvariations as a probability distribution, and we just return the parameters of this probability distribution.
+
+We do this because it is unlikely a performer would reliably have the same microvariations at each note that is played. This means that if we were to, for example, store for each beat the time difference (offset) between the beat and when the performer actually played the note, and then for our similarity scorer calculated the mean squared error between each beat's offset, we would be unlikely to obtain good results (Note for John: I have data that supports this, getting around a 14\% success rate with this proposed naive solution, compared to around 65\% with the current technique. Is that worth mentioning here, or should I wait until the evaluation section?).
+
+So, from the offsets we generate the mean and standard deviation for a normal distribution, representing when they are most likely to play a note relative to the expected beat time. Figures \ref{fig:offsetdist1} and \ref{fig:offsetdist2} show plots of inferred probability distributions for different performers and the same performer, respectively.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{offsetdist1}
+  \caption{Inferred probability distributions for different performers}
+  \label{fig:offsetdist1}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.3]{offsetdist2}
+  \caption{Inferred probability distributions for the same performer}
+  \label{fig:offsetdist2}
+\end{figure}
+
 
 
 % THINGS TO REMEMBER:
 % todo: try and change dynamics metric to compare meaningfully between beat times??
 % todo: change tempo metric to include step 1/2/... algorithm as in other metrics
+%todo: write about no tests
 % mention that we only look at the beat times in chroma similarity, and explain why we DON'T do that in dynamics metric
 % play two Cs an octave apart for chroma vector extraction section
 % show that combination of chroma/dynamics is better, with explanation in chroma similarity scorer
