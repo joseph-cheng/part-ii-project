@@ -180,13 +180,7 @@ class TempoCalculator(metric.MetricCalculator):
         beats.reverse()
 
         ret = np.array([beat * advance for beat in beats])
-
-
-
-
-
         return ret
-
 
 
     def calculate_onset_func(audio, window_size=0.064, window_advance=0.004):

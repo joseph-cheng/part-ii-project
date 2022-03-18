@@ -106,8 +106,6 @@ class ChromaCalculator(metric.MetricCalculator):
         squared_differences_sum = np.sum((pcp_at_beats1 - pcp_at_beats2)**2)
 
         # now, we divide by the number of elements in our array to get the average squared difference sum
-
-        # we need this or longer signals get really low squared difference sum values
         mse = squared_differences_sum / truncated_length
 
         # when signals are identical, this value is 0 (similarity=1), and can grow to be infinitely large, and the similarity should taper to 0

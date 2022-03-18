@@ -26,7 +26,7 @@ class OffsetsCalculator(metric.MetricCalculator):
 
         # basically, take the moving average tempo, and search for the nearest highest onset value in a small window around the expected beat time based on the moving average tempo
         current_loc = 0
-        onset_window_search_size = 0.2
+        onset_window_search_size = 0.1
         # plotting
         """ PLOTTING CODE
         offset_plot = np.zeros(len(audio.signal))
@@ -69,22 +69,24 @@ class OffsetsCalculator(metric.MetricCalculator):
         returns: similarity score between 0 and 1 of the similarity of the two metrics
         """
 
-        # To calculate similarity, for each expected beat in the shorter metric, we find the closest one in the other metric, and find the squared error between the onset offset and the onset strength
+        # To calculate similarity, for each expected beat, we compare the onset offset and the onset strength, by taking the squared error between each
 
-        shorter_metric = metric1 if len(metric1) < len(metric2) else metric2
-        longer_metric = metric1 if len(metric1) >= len(metric2) else metric2
+        truncated_length = min(len(metric1), len(metric2))
+        truncated_metric1 = metric1[:truncated_length]
+        truncated_metric2 = metric2[:truncated_length]
 
         squared_errors_sum = 0
-        for onset_offset1, onset_strength1, beat_time1 in shorter_metric:
-            closest = None
-            # now find the closest beat
-            for onset_offset2, onset_strength2, beat_time2 in longer_metric:
-                if closest == None or abs(closest[2] - beat_time1) > abs(beat_time2 - beat_time1):
-                    closest = (onset_offset2, onset_strength2, beat_time2)
 
-            squared_errors_sum += (closest[0] - onset_offset1) ** 2 + (closest[1] - onset_strength1) ** 2
+        for i in range(truncated_length):
+            onset_offset1, onset_strength1, beat_time1 = truncated_metric1[i]
+            onset_offset2, onset_strength2, beat_time2 = truncated_metric2[i]
 
-        mse = squared_errors_sum / len(shorter_metric)
+            squared_errors_sum += (onset_offset1 - onset_offset2) ** 2 + (onset_strength1 - onset_strength2) ** 2
+
+
+
+        mse = squared_errors_sum /truncated_length
+
 
 
         # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-mse) to get our metric
