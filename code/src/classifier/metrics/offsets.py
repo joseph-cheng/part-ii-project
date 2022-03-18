@@ -1,4 +1,5 @@
 import util
+import scipy.stats as stats
 import numpy as np
 import matplotlib.pyplot as plt
 import metrics.metric as metric
@@ -33,15 +34,16 @@ class OffsetsCalculator(metric.MetricCalculator):
         onset_plot = np.zeros(len(audio.signal))
         """
 
-        ret = np.zeros((len(tempo_variation_average), 3))
+
+        offsets = np.zeros(len(tempo_variation_average))
         for i, inter_onset_interval in enumerate(tempo_variation_average):
             current_loc += inter_onset_interval
             onset_loc, onset_strength = OffsetsCalculator.get_best_nearest_onset(onset_function, current_loc, onset_window_search_size)
-            ret[i][0] = onset_loc
-            ret[i][1] = onset_strength
-            ret[i][2] = current_loc
+            # negative value is before current_loc
+            offsets[i] = onset_loc - current_loc
 
         """ PLOTTING CODE
+        #TODO: fix this
         for onset_loc, onset_strength, current_loc in ret:
             offset_plot[audio.to_samples(onset_loc + current_loc)] = 1
             onset_plot[audio.to_samples(current_loc)] = 1
@@ -53,9 +55,10 @@ class OffsetsCalculator(metric.MetricCalculator):
         plt.show()
         """
 
+        mean = np.mean(offsets)
+        stdev = np.std(offsets)
 
-
-        return ret
+        return (mean, stdev)
 
     def calculate_similarity(self, audio1, audio2, metric1, metric2):
         """
@@ -71,31 +74,27 @@ class OffsetsCalculator(metric.MetricCalculator):
 
         # To calculate similarity, for each expected beat, we compare the onset offset and the onset strength, by taking the squared error between each
 
-        truncated_length = min(len(metric1), len(metric2))
-        truncated_metric1 = metric1[:truncated_length]
-        truncated_metric2 = metric2[:truncated_length]
+        mean1, stdev1 = metric1
+        mean2, stdev2 = metric2
 
-        squared_errors_sum = 0
+        # PLOTTING CODE
+        x = np.linspace(mean1 - 3 * stdev1, mean2 + 3 * stdev1, 100)
+        plt.rcParams.update({'font.size': 25})
+        plt.plot(x, stats.norm.pdf(x, mean1, stdev1), label=audio1.name[15:-4], linewidth=5)
+        plt.plot(x, stats.norm.pdf(x, mean2, stdev2), label=audio2.name[15:-4], linewidth=5)
+        plt.xticks([])
+        plt.yticks([])
+        plt.legend()
+        plt.show()
 
-        for i in range(truncated_length):
-            onset_offset1, onset_strength1, beat_time1 = truncated_metric1[i]
-            onset_offset2, onset_strength2, beat_time2 = truncated_metric2[i]
-
-            squared_errors_sum += (onset_offset1 - onset_offset2) ** 2 + (onset_strength1 - onset_strength2) ** 2
-
-
-
-        mse = squared_errors_sum /truncated_length
-
-
-
-        # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-mse) to get our metric
+        squared_errors_sum =  (mean1 - mean2)**2 + (stdev1 - stdev2)**2
+        mse = squared_errors_sum / 2
 
         return np.exp(-mse)
 
 
     def get_best_nearest_onset(onset_function, expected_beat_time, window_size):
-        """
+        """ovidtrack/
         Gets the distance from the expected beat time of the highest onset value in a small window around the expected beat time
 
         onset_function: an OnsetFunction object containing the onsets of the signal we are searching

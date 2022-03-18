@@ -168,6 +168,7 @@ if __name__ == "__main__":
     metric_results = {}
 
     metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+    metric_combinations = [(metric_calculator.METRICS[2],)]
     for metric_combination in metric_combinations:
         metric_results[metric_combination] = evaluate_metrics(data_dir, metric_combination)
 
