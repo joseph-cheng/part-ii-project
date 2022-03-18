@@ -280,17 +280,25 @@ To calculate a chroma vector, we look at the frequency content of our signal, an
 \end{enumerate}
 
 
-\subsection{Similarity Scorer}
+\subsubsection{Similarity Scorer}
 
-% TODO: try and see if we need to compare beat times for chroma similarity
-We again apply similar techniques as used in other 
+We again apply similar techniques as used in other similarity scorers: truncating to the shorter metric length, calculating the mean squared error between the two metrics, and applying the negative exponential function.
+
+There is one major difference between this similarity scorere and others, however. For the chroma similarity, we only compare the metric at the detected beat times. This has some benefits over the naive method of just taking the mean squared error over the entire metric. If we use the naive method, then when we compare the metrics, we may be comparing different parts of the piece entirely since the tempos of the two performances are likely to differ. By ensuring that we only compare the metrics at each beat time, we can be certain that we are comparing the metrics meaningfully.
+
+There are some downsides to this approach. For example, if a note is held for a long time in one performance, but is held only for a short time in another performance, then this similarity scorer will be unable to detect this, since it only compares the metrics at instantaneous beat times. However, we might hope that our dynamics metric might be able to capture this behaviour instead, so combining these two metrics should be able to overcome this shortcoming.
+
 
 
 
 
 % THINGS TO REMEMBER:
+% todo: try and change dynamics metric to compare meaningfully between beat times??
+% todo: change tempo metric to include step 1/2/... algorithm as in other metrics
 % mention that we only look at the beat times in chroma similarity, and explain why we DON'T do that in dynamics metric
 % play two Cs an octave apart for chroma vector extraction section
+% show that combination of chroma/dynamics is better, with explanation in chroma similarity scorer
+%TODO: also add musical jargon to preparation chapter?
 
 
 
