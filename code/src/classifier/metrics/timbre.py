@@ -4,12 +4,14 @@ import numpy as np
 import metrics.metric as metric
 
 class TimbreCalculator(metric.MetricCalculator):
-    def __init__(self, window_size=0.3):
+    def __init__(self, window_size=0.3, target_pitch=440):
         """
         window_size: the size in seconds of the window to calculate the MFCCs for
+        target_pitch: the frequency in Hz we should normalise to when calculating the spectrum
         """
 
         self.window_size = window_size
+        self.target_pitch = target_pitch
 
     def calculate_metric(self, audio):
         """
@@ -31,7 +33,7 @@ class TimbreCalculator(metric.MetricCalculator):
 
             window_signal = audio.signal[window_start:window_end]
 
-            timbre_array[i] = TimbreCalculator.calculate_mfccs(window_signal, audio.sample_rate)
+            timbre_array[i] = self.calculate_mfccs(window_signal, audio.sample_rate)
 
         return timbre_array
 
@@ -156,8 +158,34 @@ class TimbreCalculator(metric.MetricCalculator):
 
         return filter_bank_energies
 
+    def normalise_spectrum(self, spectrum, spectrum_freqs):
+        """
+        Shifts a spectrum towards a target pitch, naively finds the `pitch' of the signal by finding the frequency with the largest amplitude
+        normalises towards self.target_pitch
 
-    def calculate_mfccs(signal, sample_rate):
+        spectrum: 1D array of the spectrum, from np.fft.rfft()
+        spectrum_freqs: 1D array of the frequency bins for the spectrum, from np.fft.rfftfreq()
+        target_pitch: target pitch in Hz to shift towards
+
+        returns: a shifted spectrum where the maximal frequency is target_pitch
+        """
+
+        fundamental_freq = spectrum_freqs[np.argmax(spectrum)]
+        shift = self.target_pitch - fundamental_freq
+        spacing = spectrum_freqs[1] - spectrum_freqs[0]
+        shift_idx = int(shift / spacing)
+        shifted = np.roll(spectrum, shift_idx)
+        # rolling makes frequencies at the ends reappear, so we zero these instead
+        if shift_idx >= 0:
+            shifted[:shift_idx] = 0
+        else:
+            shifted[shift_idx:] = 0
+
+        return shifted
+
+
+
+    def calculate_mfccs(self, signal, sample_rate):
         """
         Calculates the MFCCs of a signal
 
@@ -169,9 +197,11 @@ class TimbreCalculator(metric.MetricCalculator):
 
         # first, we calculate the spectrum of our signal
         spectrum = scipy.fft.rfft(signal)
+        spectrum_freqs = scipy.fft.rfftfreq(len(signal), d=1/sample_rate)
+        shifted_spectrum = self.normalise_spectrum(spectrum, spectrum_freqs)
 
         #now we calculate the power spectrum (by converting each frequency to a power and normalising)
-        power_spectrum = 1/len(signal) * (np.abs(spectrum) ** 2)
+        power_spectrum = 1/len(signal) * (np.abs(shifted_spectrum) ** 2)
 
         filter_bank_energies = TimbreCalculator.spectrum_to_mel_bands(
             power_spectrum, sample_rate)

@@ -77,20 +77,12 @@ class OffsetsCalculator(metric.MetricCalculator):
         mean1, stdev1 = metric1
         mean2, stdev2 = metric2
 
-        # PLOTTING CODE
-        x = np.linspace(mean1 - 3 * stdev1, mean2 + 3 * stdev1, 100)
-        plt.rcParams.update({'font.size': 25})
-        plt.plot(x, stats.norm.pdf(x, mean1, stdev1), label=audio1.name[15:-4], linewidth=5)
-        plt.plot(x, stats.norm.pdf(x, mean2, stdev2), label=audio2.name[15:-4], linewidth=5)
-        plt.xticks([])
-        plt.yticks([])
-        plt.legend()
-        plt.show()
+        divergence_pq = OffsetsCalculator.calculate_divergence(mean1, stdev1, mean2, stdev2)
+        divergence_qp = OffsetsCalculator.calculate_divergence(mean2, stdev2, mean1, stdev1)
 
-        squared_errors_sum =  (mean1 - mean2)**2 + (stdev1 - stdev2)**2
-        mse = squared_errors_sum / 2
+        symmetrised_divergence = 0.5 * (divergence_pq + divergence_qp)
 
-        return np.exp(-mse)
+        return np.exp(-symmetrised_divergence)
 
 
     def get_best_nearest_onset(onset_function, expected_beat_time, window_size):
@@ -120,3 +112,13 @@ class OffsetsCalculator(metric.MetricCalculator):
 
     def __repr__(self):
         return "Offsets"
+
+    def calculate_divergence(mean1, stdev1, mean2, stdev2):
+
+        a = np.log(stdev2 / stdev1)
+
+        numerator_b = stdev1 ** 2 + (mean1 - mean2)**2
+        denominator_b = 2 * stdev2 ** 2
+
+        return a + (numerator_b/denominator_b) - 0.5
+
