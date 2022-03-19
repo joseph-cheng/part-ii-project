@@ -299,27 +299,122 @@ This metric tries to capture microvariations in rhythm from a performer, in some
 
 We do this because it is unlikely a performer would reliably have the same microvariations at each note that is played. This means that if we were to, for example, store for each beat the time difference (offset) between the beat and when the performer actually played the note, and then for our similarity scorer calculated the mean squared error between each beat's offset, we would be unlikely to obtain good results (Note for John: I have data that supports this, getting around a 14\% success rate with this proposed naive solution, compared to around 65\% with the current technique. Is that worth mentioning here, or should I wait until the evaluation section?).
 
-So, from the offsets we generate the mean and standard deviation for a normal distribution, representing when they are most likely to play a note relative to the expected beat time. Figures \ref{fig:offsetdist1} and \ref{fig:offsetdist2} show plots of inferred probability distributions for different performers and the same performer, respectively.
+So, from the offsets we generate the mean and standard deviation for a normal distribution, representing when they are most likely to play a note relative to the expected beat time. Figure \ref{fig:offsetdists} shows plots of inferred probability distributions for different performers and the same performer, respectively.
+
+\begin{figure}[h]
+  \captionsetup{justification=centering}
+  \centering
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[scale=0.25]{offsetdist1}
+    \label{fig:offsetdist1}
+    \caption{}
+  \end{subfigure}
+
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[scale=0.25]{offsetdist2}
+    \caption{}
+  \end{subfigure}
+  \caption{Inferred probability distributions for different performers (a) and the same performer (b)}
+  \label{fig:offsetdists}
+\end{figure}
+
+\subsubsection{Similarity Scorer}
+
+In essence, the similarity scorer for this metric is about comparing two probability distributions. For this reason, we use an information theoretic approach for the similarity scorer. In particular, we use the Kullback-Leibler divergence $D_{KL}(P||Q)$ that calculates a `distance' between two probability distributions $P$ and $Q$.
+
+We do not just return $D_{KL}(P||Q)$ as our similarity however, since it is by definition asymmetric, and it is important that our similarity scorers are symmetric. Furthermore, $D_{KL}(P||Q)$ generally treats $P$ as some kind of `true' distribution. So, we instead symmetrise this measure and calculate $\frac{D_{KL}(P||Q) + D_{KL}(Q||P)}{2}$ instead.
+
+\begin{equation}\label{eq:dkl}
+  D_{KL}(P||Q) = \int_{-\infty}^\infty p(x) \log \frac{p(x)}{q(x)} \mathrm{d}x
+\end{equation}
+
+The calculation of this metric is relatively easy. The definition of $D_{KL}(P||Q)$ is given in Equation \ref{eq:dkl}, and since our metric specifies a normal distribution, if our metrics are modelled $M_1 \sim N(\mu_1, \sigma_1^2)$ and $M_2 \sim N(\mu_2, \sigma_2^2)$, then we can derive an expression for $D_{KL}(M_1||M_2)$ seen in Equation \ref{eq:dkl2}
+
+\begin{equation}\label{eq:dkl2}
+  D_{KL}(M_1||M_2) = \log \frac{\sigma_2}{\sigma_1} + \frac{\sigma_1^2 + (\mu_1 - \mu_2)^2}{2\sigma_2^2} - \frac{1}{2}
+\end{equation}
+
+From this, we can derive an expression for $\frac{D_{KL}(M_1 || M_2) - D_{KL}(M_2 || M_1)}{2}$, given in Equation \ref{eq:dkl3}
+
+\begin{equation}\label{eq:dkl3}
+  \frac{D_{KL}(M_1 || M_2) - D_{KL}(M_2||M_1)}{2} = \frac{\sigma_1^4 + \sigma_2^4 + (\sigma_1^2 + \sigma_2^2)(\mu_1 - \mu_2)^2}{4\sigma_1^2\sigma_2^2} - \frac{1}{2}
+\end{equation}
+
+We can see that if $\sigma_1 = \sigma_2$ and $\mu_1 = \mu_2$, that this symmetrised divergence becomes 0, and as as the parameters begin to differ, the divergence will get larger. This means that we can calculate our final similarity score as the negative exponential of our symmetrised divergence, which will be 1 when the distributions are the same, and approach 0 as the distributions differ.
+
+\subsection{Timbre extraction}
+
+The timbre of a sound can be thought of as the `character' of that sound. For example, if a trumpet and harp both play the same note they will sound different, because the timbres of these notes are different. So, this metric aims to find and quantify timbral differences between performers. It is to be expected that this is difficult, since quantifying timbre is known to be a difficult problem.
+
+The timbre of a sound comes from its harmonic content, i.e. what frequencies are present above the frequency of the note that is being played. We can see that this differs between instruments by looking at the spectrogram of the same note played on both a saxophone and piano, as seen in Figure \ref{fig:saxpianoc}.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.3]{offsetdist1}
-  \caption{Inferred probability distributions for different performers}
-  \label{fig:offsetdist1}
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[scale=0.35]{saxc}
+    \caption{}
+  \end{subfigure}
+  \begin{subfigure}[b]{\textwidth}
+    \centering
+    \includegraphics[scale=0.35]{pianoc}
+    \caption{}
+  \end{subfigure}
+  \caption{Spectrogram of the note C played on a saxophone (a) and piano (b)}
+  \label{fig:saxpianoc}
 \end{figure}
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[scale=0.3]{offsetdist2}
-  \caption{Inferred probability distributions for the same performer}
-  \label{fig:offsetdist2}
-\end{figure}
+So, our timbre metric needs to capture the harmonic content of an audio signal. It is not just enough to quantify the spectrogram however, since if we did we would be capturing melodic content of the audio signal, i.e. which note is being played, which we want to leave for the chroma metric to capture instead. This means that we would need to normalise the spectrum such that the actual note being played does not matter.
+
+We also only care about the timbre when a note is being played. For this reason, we only calculate our timbre metric at expected beat times. It should be noted that a note will not always occur on an expected beat, but we can assume that a note will occur on most expected beats.
+
+To quantify the spectrum of a signal, we use a standard technique of generating mel-frequency cepstrum coefficients (MFCCs), which is often used for applications like speech recognition and music genre classification. A cepstrum is obtained by first taking the log of the magnitudes in a spectrum, and then taking its inverse Fourier transform. A mel-frequency cepstrum works simply by instead using a power spectrum (like a frequency spectrum, but we square the magnitudes), and then converting the spectrum to use the mel scale first. The MFCCs are then just the magnitudes of the inverse Fourier transformed signal.
+
+Our metric calculator works as follows:
+
+\begin{enumerate}[label=\textbf{Step \arabic*:}]
+  \item
+    For each beat time, take a window of the signal, we use a window size of 0.3 seconds.
+
+  \item
+    Calculate the spectrum of each window by taking its Fourier transform.
+
+  \item
+    Find the note that is most likely being played, and shift the spectrum such that this matches a standard note (we use the note A at 440 Hz).
+
+    To find the note that is most likely being played, we use a crude estimation by simply finding the frequency with the largest magnitude. This might fail in the case that multiple notes are being played simultaneously, although in this case no normalisation would be able to remove all of the melodic content.
+
+  \item
+    Calculate the MFCCs of the shifted spectrum, using 40 mel bands.
+\end{enumerate}
+
+The metric is then an array of the MFCCs for each beat time.
+
+\subsubsection{Similarity Scorer}
+
+The similarity scorer for this metric is simple, and just uses techniques we have seen in previous similarity scorers.
+
+We first truncate each metric to the length of the shorter metric. Then, for each set of MFCCs, we calculate the mean squared error. From this, we can then calculate the mean squared error over the entire metric by finding the mean of these mean squared errors. Finally, we apply the negative exponential function to obtain our similarity score.
+
+\section{Transformations}
+
+TODO
+
+
+
+
+
+
+
+
 
 
 
 % THINGS TO REMEMBER:
 % todo: try and change dynamics metric to compare meaningfully between beat times??
-% todo: change tempo metric to include step 1/2/... algorithm as in other metrics
+% todo: change tempo/offsets metric to include step 1/2/... algorithm as in other metrics
 %todo: write about no tests
 % mention that we only look at the beat times in chroma similarity, and explain why we DON'T do that in dynamics metric
 % play two Cs an octave apart for chroma vector extraction section
