@@ -121,8 +121,7 @@ All other files were taken using the Creative Commons 1.0 license.
 
 \section{Data Synthesis}
 
-% TODO
-TODO
+
 
 \section{Metric Calculators}
 
@@ -146,7 +145,7 @@ The \texttt{\_\_init\_\_()} method allows the user to pass parameters to a metri
 
 To create a new metric calculator, we just define a class that inherits from \texttt{MetricCalculator} and override the functions with appropiate method definitions.
 
-\subsection{Tempo Variation Over Time}
+\subsection{Tempo Variation Over Time}\label{sec:tempovariation}
 
 This metric calculator is implemented in the \texttt{src/classifier/metrics/tempo.py} file.
 
@@ -167,6 +166,25 @@ There were a few other choices for constructing this metric, for example instead
 Furthermore, the smoothing we perform is very important. Being able to avoid these micro-variations is incredibly useful, since this metric really intends to capture an overall view of how tempo changes over the performance of the piece, and not a microscopic view of timings within each bar, for example.
 
 We are also able to tune how much of this smoothing we get on our beat time differences by changing the window size of our moving average. For our case, we choose a window size of 4 beats, which corresponds to the length of a bar (the next level up in the temporal structure of music) in most Western European music, which is what our dataset consists of.
+
+Our tempo variation over time metric is then calculated as follows, which includes operation of the beat tracking algorithm described in Section \ref{sec:beattracking}.
+
+\begin{enumerate}[label=\textbf{Step \arabic*:}]
+  \item
+    Calculate the onset function of our audio signal.
+
+  \item
+    Take the correlation between delayed versions of the onset function and itself to find an estimate for the overall tempo of the performance.
+    
+  \item
+    Use Ellis' dynamics programming algorithm to calculate the beat times in our performance.
+
+  \item
+    Take the first-order difference of these beat times and take a moving average as our final metric.
+    Take the first-order difference of these beat times and take a moving average as our final metric.
+
+    
+\end{enumerate}
 
 \subsubsection{Similarity Scorer}\label{sec:temposimilarity}
 
@@ -291,7 +309,7 @@ There are some downsides to this approach. For example, if a note is held for a 
 
 
 
-\subsection{Note offsets}
+\subsection{Note Offsets}
 
 This metric is implemented in the \texttt{src/classifier/metrics/offsets.py} file.
 
@@ -299,7 +317,22 @@ This metric tries to capture microvariations in rhythm from a performer, in some
 
 We do this because it is unlikely a performer would reliably have the same microvariations at each note that is played. This means that if we were to, for example, store for each beat the time difference (offset) between the beat and when the performer actually played the note, and then for our similarity scorer calculated the mean squared error between each beat's offset, we would be unlikely to obtain good results (Note for John: I have data that supports this, getting around a 14\% success rate with this proposed naive solution, compared to around 65\% with the current technique. Is that worth mentioning here, or should I wait until the evaluation section?).
 
-So, from the offsets we generate the mean and standard deviation for a normal distribution, representing when they are most likely to play a note relative to the expected beat time. Figure \ref{fig:offsetdists} shows plots of inferred probability distributions for different performers and the same performer, respectively.
+So, from the offsets we generate the mean and standard deviation for a normal distribution, representing when they are most likely to play a note relative to the expected beat time. Figure \ref{fig:offsetdists} shows plots of inferred probability distributions for different performers and the same performer, respectively. Our algorithm works as follows:
+
+\begin{enumerate}[label=\textbf{Step \arabic*:}]
+  \item
+    Take a moving average of the first-order difference of the beat times to obtain a smoothed tempo curve, in the same way we calculate the tempo metric in Section \ref{sec:tempovariation}.
+
+  \item
+    For each beat time in the cumulative sum of the smoothed tempo curve, find the nearest onset and record its displacement from the expected beat time.
+
+    We do this by searching a small window (0.1 seconds) around our expected beat time in our onset function (defined in Section \ref{subsec:onset detection}), and choosing the value with the highest onset.
+
+  \item
+    Calculate and return the mean and standard deviation of the displacements.
+
+    
+\end{enumerate}
 
 \begin{figure}[h]
   \captionsetup{justification=centering}
@@ -400,7 +433,36 @@ We first truncate each metric to the length of the shorter metric. Then, for eac
 
 \section{Transformations}
 
-TODO
+For the purposes of evaluation, we also implement a number of transformations which can be applied to the data before being used in the system. In particular, we implement the addition of background noise as well as the addition of reverb.
+
+A user can specify a number of transformations to apply to evaluation data, as well as the order in which they are applied (since it does not make sense to apply reverb, and then add noise to a signal).
+
+\subsection{Background Noise}
+
+This transformation is implemented in \texttt{src/classifier/transformations/noise.py}.
+
+Background noise is created through a microphone recording additional environmental sounds. The exact set of sources of noise will vary but some sources might include buzzing from electrical equipment, plumbing, speech, etc. This means that synthesising accurate noise is quite difficult. For example, white noise is unlikely to be representative of these sources and thus simply adding Gaussian white noise is unlikely to represent use of the system under data that has real background noise.
+
+Instead of creating a complex system to synthesise background noise, that will inevitably be not completely alike to real background noise, we instead just take samples of background noise and add these samples to our performances.
+
+If we are using samples of background noise, then it is important to consider what happens when the length of our performance exceeds the length of the noise sample. A naive implementation might just repeat the noise sample immediately, but this could lead to artifacts where the amplitude immediately makes a large jump from the end of the signal to the start. One way to avoid these artifacts might be to reverse the noise and then append it to the end, but this might change the character of the noise in some way and make it unrealistic. The solution that we opt for is to have a small period at the end of the noise signal where we overlap another instance of the noise signal. We then crossfade the two signals, so the volume of the first signal decreases to silence as the volume of the second signal increases from silence. This ensures that we avoid audio artifacts whilst keeping the character of the noise signal.
+
+We also allow for the user to specify the loudness of the noise overall.
+
+
+\subsection{Reverb}
+
+This transformation is implemented in \texttt{src/classifier/transformations/reverb.py}.
+
+When a sound is played in a room, it will reflect, and be absorbed by, surfaces in the room. These reflections cause an echo-like effect to be heard, and as the sound waves are absorbed, the reverbations becomes diminsh until they become inaudible.
+
+%TODO: include diagram of sound with/without reverb
+
+In music production, numerous techniques are used to simulate reverb. There are acoustic techniques like plate or spring reverb which involve passing the sound signal through a metal plate/spring and recording the results, but these acoustic techniques would be infeasible to implement for our application.
+
+A common digital technique is to generate many delayed versions of the signal, as echoes, and play them back. This allows for easy parametrisation and is quick to compute, but is not entirely realistic. The technique we opt for is a more realistic implementation of digital reverb, and uses convolution. We first require a digital recording of the impulse response of a room, which is generated by recording the audio in a room after an impulse, like the popping of a balloon or a clap. Then, we simply convolve this impulse response with our audio signal, which transfers the acoustic characteristics of the room to be transferred onto a performance. This is significantly more computationally expensive than the other digital reverb technique mentioned, but we are not concerned with performance, and instead care much more about the realism of the reverb effect.
+
+\section{Summary}
 
 
 
@@ -414,9 +476,7 @@ TODO
 
 % THINGS TO REMEMBER:
 % todo: try and change dynamics metric to compare meaningfully between beat times??
-% todo: change tempo/offsets metric to include step 1/2/... algorithm as in other metrics
 %todo: write about no tests
-% mention that we only look at the beat times in chroma similarity, and explain why we DON'T do that in dynamics metric
 % play two Cs an octave apart for chroma vector extraction section
 % show that combination of chroma/dynamics is better, with explanation in chroma similarity scorer
 %TODO: also add musical jargon to preparation chapter?
