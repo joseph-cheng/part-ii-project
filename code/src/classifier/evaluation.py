@@ -143,9 +143,9 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 
 
 if __name__ == "__main__":
+    """
     # need to cast to list because we consume the generator in making metric_results
     transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
-    transform_combinations = [()]
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
     for transform_combination in transform_combinations:
 
@@ -154,6 +154,25 @@ if __name__ == "__main__":
             metric_results[transform_combination][metric_combination] = evaluate_metrics(data_dir, metric_combination, transforms=transform_combination)
 
     print(metric_results)
+    """
+
+    noise_levels = np.linspace(0.0, 40.0, 21)
+    peak_scores = []
+    for noise_level in noise_levels:
+        noise_transform = noise.Noise("../../res/noise/room.wav", level=noise_level)
+        metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+        peak_score = 0
+        for metric_combination in metric_combinations:
+            peak_score = max(peak_score, evaluate_metrics(data_dir, metric_combination, transforms=[noise_transform]))
+
+        peak_scores.append(peak_score)
+
+    plt.title("Peak Success vs. noise level")
+    plt.ylim([0, 1])
+    plt.xlim([0, 40.0])
+    plt.plot(noise_levels, peak_scores)
+    plt.show()
+
 
 
 
