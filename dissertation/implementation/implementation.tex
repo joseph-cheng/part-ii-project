@@ -119,7 +119,7 @@ Files in the \texttt{irs/} directory were taken from the University of York's \h
 
 All other files were taken using the Creative Commons 1.0 license.
 
-\section{Data Synthesis}
+\section{Data Synthesis}\label{sec:datasynthesis}
 
 In this section we discuss the implementation of the data synthesis module created for generating data to test the metric calculators on during development. This involved a MusicXML parser, pianist profiles, and synthesising audio.
 
@@ -461,7 +461,7 @@ The similarity scorer for this metric is simple, and just uses techniques we hav
 
 We first truncate each metric to the length of the shorter metric. Then, for each set of MFCCs, we calculate the mean squared error. From this, we can then calculate the mean squared error over the entire metric by finding the mean of these mean squared errors. Finally, we apply the negative exponential function to obtain our similarity score.
 
-\section{Transformations}
+\section{Transformations}\label{sec:transformations}
 
 For the purposes of evaluation, we also implement a number of transformations which can be applied to the data before being used in the system. In particular, we implement the addition of background noise as well as the addition of reverb.
 

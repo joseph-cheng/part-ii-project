@@ -11,6 +11,106 @@
   \chapter{Evaluation}
 \fi
 \resetfigpath{evaluation}
+% write about:
+% individual metric capabilities, check in implementation for combos
+% peak metric success
+% how each metric and peak metric success were affected by variations
+% plot graph of noise vs time
+
+In this chapter, we evaluate the success of the project, with reference to the requirements given in Table \ref{table:requirements}. We also explore the absolute performance of the system, as well as comparative success. 
+
+\section{Requirements Analysis Revisited}
+
+All of the non-extension requirements were successfully completed:
+
+\begin{itemize}
+  \item
+    \textbf{Calculators for each of the 5 proposed metrics}
+
+    As explained in Chapter \ref{chapter:implementation}, each of the metrics were implemented in such a way that they successfully capture information outlined in Chapter \ref{chapter:introduction}. We will see evidence of this success later in the chapter.
+
+  \item
+    \textbf{Similarity scorers for each of the 5 proposed metrics}
+
+    Again, we have seen that we were able to implement similarity scorers for each of the metrics, and the evidence we see later in this chapter tells us that these capture sensible notions of similarity.
+
+  \item
+    \textbf{Additional of optional variation to input data}
+
+    As seen in Section \ref{sec:transformations}, we are able to add variation to input data such that we are able to somewhat realistically mimic sonic effects that could be perceived in other recordings.
+
+  \item
+    \textbf{Code to automatically perform evaluation based on a plan}
+
+    As we will see in the next section (TODO: add reference), we were was able to implement a framework for evaluating the system given a number of parameters, allowing for easy gathering of data.
+
+  \item
+    \textbf{Data synthesis engine to generate test piano data}
+
+    As seen in Section \ref{sec:datasynthesis}, we implemented an engine that was able to parse scores and synthesise audio with added variation that aided in development of the core system.
+
+  \item
+    \textbf{Data synthesis engine to generate test data from other instruments}
+
+    This was an extension requirement, and was unable to be completed. Generating good test data from other instruments would require more than a surface level understanding of the instrument, and I did not have enough time to both do this research and implement a data synthesis engine based on my findings.
+
+  \item
+    \textbf{Gathering of real-world piano performances}
+
+    As outlined in Section \ref{sec:datacollection}, we successfully gathered a total of 32 (TODO: change if got more) real-world piano performances, using a range of piano pieces that cover different techniques (and thus sound different).
+\end{itemize}
+
+\section{Evaluation of Metrics}
+
+In this section, we discuss how each metric and metric combination were evaluated, as well as the framework developed to aid implementation.
+
+To evaluate our system, we only really care about one statistic: does the system guess the correct performer given one distinguished performance, and a set of performances where one is by the same performer as the distinguished performance. Furthermore, since our dataset is relatively small, it was important to try and use this dataset in many ways to gather enough evaluation information. For these reasons, in order to evaluate the system for a set of performances $P$ containing two performances of the same piece for each pianist, we do the following:
+
+\begin{itemize}
+  \item
+    Initialise a counter $c$ to 0
+
+  \item
+    Choose each performance from $P$ as the `distinguished' performance $p$ in turn
+
+    \begin{itemize}
+        
+
+      \item
+        Calculate metrics for all of the performances in $P$
+
+      \item
+        Calculate the mean similarity over each of the metrics between the distinguished performance $p$ and  $P \setminus \{p\}$
+
+      \item
+        Take the system's guess $p'$ as the performance with the highest mean similarity
+      \item
+        If $p$ has the same performer as $p'$, increment $c$
+    \end{itemize}
+
+  \item
+    The success for $P$ is then the $c$ divided by the total number of guesses our system made, which is $|P|$.
+\end{itemize}
+
+We can then extend this if we have multiple collections $P$ by simply taking the mean success, weighted by the size of each collection.
+
+It should be noted here that it may seem like we are inflating our results, since if we have two performances $p_1$ and $p_2$ by the same performer, we have one instance where we choose $p_1$ to be our distinguished performance, and another where we choose $p_2$, and by symmetry of our similarity scorers it may seem like this is a bad idea. However, there could be a third performance $p_3$ that $p_2$ has the highest aggregate similarity with, but does not have the highest aggregate similarity with $p_1$, so we are not inflating our results.
+
+This method allows us to get a lot of evaluation data from just a few performances, for a set of performances $P$ we get a granularity of $\frac{1}{|P|}$. In our case, each of our sets of performances have 8 performances each, and we have 4 different pieces, which gives us a granularity of $\frac{1}{32}$.
+
+We can go even further, and find what success we need for a result to be statistically significant. For a set of performances $P$, if our system guessed at random, we would have a $\frac{1}{|P|}$ probability of guessing correctly. Now, suppose we have $n$ sets of performances $P_1, \ldots, P_n$. To match our dataset, we will assume that the $P_i$ all have the same size. This means that we can model the number of successful guesses of our system as a random variable modelled by a binomial distribution $X \sim B(n|P_i|, \frac{1}{|P_i|})$. At a significant level of $p$, we then just need to find the least $m$ such that $P(X \geq m) \leq p$.
+
+For our dataset, we have $n=4$, $|P_i| = 8$, and we set $p$ at 0.05. We then find that $P(X \geq 6) = 0.096$ (2 s.f.) and $P(X \geq 7) = 0.040$ (2 s.f.), so our critical value is 7. This means we only need to get 7 successful trials, or a success of 0.22 (2 s.f.) for our system to be statistically significantly better than random.
+
+\subsection{Evaluation Framework}
+
+To speed up evaluation, it was important to easily be able to evaluate the entire dataset (as described earlier) on any combination of metrics, and with any number of transformations. Furthermore, the evaluation should be reasonably fast since we need to evaluate the dataset over a very large parameter space.
+
+For this reason, we implemented an \texttt{evaluate\_metrics} function in \texttt{src/classifier/evaluation.py} that, given a list of metric calculators and a list of transformations, evaluated the entire dataset and returned its success. Furthermore, a number of caching mechanisms were implemented that were vital to the success of evaluation: the time it would have taken to evaluate the system would have been nearly infeasible without them. Calculating the metrics and similarities involves rather expensive operations, so metrics were cached and onset functions were cached, since onset functions are quite expensive to compute and underpin a lot of the metric calculators and similarity scorers.
+
+
+
+
 
 
 \ifstandalone
