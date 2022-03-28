@@ -8,10 +8,12 @@ import itertools
 import transformations.noise as noise
 import transformations.reverb as reverb
 
+"""
 TRANSFORMS = [
         noise.Noise("../../res/noise/room.wav", level=1.0),
         reverb.Reverb("../../res/irs/studio.wav")
 ]
+"""
 
 data_dir = "../../res/data"
 
@@ -143,19 +145,20 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 
 
 if __name__ == "__main__":
-    """
     # need to cast to list because we consume the generator in making metric_results
-    transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
+    #transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
+    transform_combinations= [()]
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
     for transform_combination in transform_combinations:
 
         metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+        metric_combinations = [metric_calculator.METRICS[1]]
         for metric_combination in metric_combinations:
             metric_results[transform_combination][metric_combination] = evaluate_metrics(data_dir, metric_combination, transforms=transform_combination)
 
     print(metric_results)
-    """
 
+    """
     plt.rcParams.update({'font.size': 30})
 
     noise_levels = np.linspace(0.0, 40.0, 21)
@@ -180,6 +183,7 @@ if __name__ == "__main__":
     plt.plot(noise_levels, peak_scores, linewidth=4, label="Highest success")
     plt.plot(noise_levels, lowest_scores, linewidth=4, label="Lowest success")
     plt.show()
+    """
 
 
 
