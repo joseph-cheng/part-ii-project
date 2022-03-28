@@ -328,7 +328,7 @@ To calculate a chroma vector, we look at the frequency content of our signal, an
 \end{enumerate}
 
 
-\subsubsection{Similarity Scorer}
+\subsubsection{Similarity Scorer}\label{sec:chroma similarity}
 
 
 We again apply similar techniques as used in other similarity scorers: truncating to the shorter metric length, calculating the mean squared error between the two metrics, and applying the negative exponential function.
@@ -407,7 +407,7 @@ From this, we can derive an expression for $\frac{D_{KL}(M_1 || M_2) - D_{KL}(M_
 
 We can see that if $\sigma_1 = \sigma_2$ and $\mu_1 = \mu_2$, that this symmetrised divergence becomes 0, and as as the parameters begin to differ, the divergence will get larger. This means that we can calculate our final similarity score as the negative exponential of our symmetrised divergence, which will be 1 when the distributions are the same, and approach 0 as the distributions differ.
 
-\subsection{Timbre extraction}
+\subsection{Timbre extraction}\label{sec:timbre metric}
 
 The timbre of a sound can be thought of as the `character' of that sound. For example, if a trumpet and harp both play the same note they will sound different, because the timbres of these notes are different. So, this metric aims to find and quantify timbral differences between performers. It is to be expected that this is difficult, since quantifying timbre is known to be a difficult problem.
 
