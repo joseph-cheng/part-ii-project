@@ -42,7 +42,7 @@ All of the non-extension requirements were successfully completed:
   \item
     \textbf{Code to automatically perform evaluation based on a plan}
 
-    As we will see in the next section (TODO: add reference), we were was able to implement a framework for evaluating the system given a number of parameters, allowing for easy gathering of data.
+    As we will see in Section \ref{sec:evaluation framework}, we were was able to implement a framework for evaluating the system given a number of parameters, allowing for easy gathering of data.
 
   \item
     \textbf{Data synthesis engine to generate test piano data}
@@ -102,7 +102,7 @@ We can go even further, and find what success we need for a result to be statist
 
 For our dataset, we have $n=4$, $|P_i| = 8$, and we set $p$ at 0.05. We then find that $P(X \geq 6) = 0.096$ (2 s.f.) and $P(X \geq 7) = 0.040$ (2 s.f.), so our critical value is 7. This means we only need to get 7 successful trials, or a success of 0.22 (2 s.f.) for our system to be statistically significantly better than random.
 
-\subsection{Evaluation Framework}
+\subsection{Evaluation Framework}\label{sec:evaluation framework}
 
 To speed up evaluation, it was important to easily be able to evaluate the entire dataset (as described earlier) on any combination of metrics, and with any number of transformations. Furthermore, the evaluation should be reasonably fast since we need to evaluate the dataset over a very large parameter space.
 
@@ -189,17 +189,27 @@ As we can see, introduction of transformations causes some performances to have 
 
 When looking into the performance of metric combinations, we see that the noise transformation actually results in a better peak success: 0.81 (2 s.f.) with the same best metric combinations for no transformations. When adding the reverb transformation, our peak success decreases, only being able to attain a peak success of 0.69 (2 s.f.), which is no better than the success obtained by the note offsets metrics on its own. Interestingly, we can see that the chroma metric took a large performance hit, and none of the best metric combinations include the chroma metric. Finally, applying noise and then reverb allows us to attain a peak success of 0.75 (2 s.f.) with numerous metric combinations, but none including the chroma metric.
 
-These results seem counter-intuitive, since we seem to be gaining performance by adding noise into our system. The graph in Figure \ref{fig:noiseplot} shows how the best and worst metric performance changes as we increase the amplitude of the noise that we add.
+\subsubsection{Noise}
+
+The results for noise seem counter-intuitive, since we seem to be gaining performance by adding noise into our system. The graph in Figure \ref{fig:noiseplot} shows how the best and worst metric performance changes as we increase the amplitude of the noise that we add.
 
 % TODO: change this plot to its actual one
 \begin{figure}[h]
+    \captionsetup{justification=centering}
     \centering
     \includegraphics[scale=0.3]{noiseplot}
-    \caption{Best and worst metric performance against noise amplitude}
-    \label{fig:noiseplot2}
+    \caption{Best and worst metric performance against noise amplitude (confidence intervals are not given due to the algorithm being deterministic)}
+    \label{fig:noiseplot}
 \end{figure}
 
 Although the peak performance varies (and sometimes increases), there is a general trend of it decreasing, although it is impressive that the system is still able to perform reasonably well under very amplified noise. The worst performance, however, suffers tremendously, such that the system is sometimes worse than random (which occurs at a success of 0.125), and is even capable of being unable to correctly identify a single performer at certain points. This indicates that the noise is somehow acting adversarially to our system, since otherwise we would not expect the system to become worse than random.
+
+Furthermore, the peak performance with additional noise is not statistically significantly different from without noise ($p=0.05$), so we cannot recommend that adding noise is a sensible idea to increase the accuracy of the system.
+
+\subsubsection{Reverb}
+
+One potential cause for the decrease in performance of the chroma metric when adding reverb might be due to the properties of the convolution operation (which we use to implement reverb). Since convolution amplifies frequency components that are shared and diminishes those that are not shared, it is reasonable to expect that chroma vectors extracted from a signal augmented with convolutional reverb will not be as accurate as those extracted from the original signal, and thus the similarity scorer may be unable to distinguish between performers as well.
+
 
 
 
