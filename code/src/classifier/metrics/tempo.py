@@ -85,6 +85,7 @@ class TempoCalculator(metric.MetricCalculator):
             plt.show()
         """
 
+
         return smoothed
 
     def calculate_similarity(self, audio1, audio2, metric1, metric2):
@@ -110,8 +111,16 @@ class TempoCalculator(metric.MetricCalculator):
 
         mse = squared_errors_sum / len(beat_diffs1)
 
-        # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
+        """
+        # more plotting code
+        plt.plot(beat_diffs1, label=audio1.name)
+        plt.plot(beat_diffs2, label=audio2.name)
+        plt.legend()
+        plt.show()
 
+        """
+
+        # when the two metrics are identical, squared_errors_sum is 0, and becomes larger and larger the less similar the metrics are, so we apply exp(-squared_errors_sum) to get our metric
         return np.exp(-mse)
 
     def calculate_beats(audio, advance=0.004):

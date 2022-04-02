@@ -17,7 +17,7 @@
 
 
 
-This chapter gives and discusses the preparatory work done for this project. We begin by explaining some key concepts and algorithms used in this project. Next, we discuss and justify choices made for real-world data collection and metric calculation. We then discuss the requirements of this project, and finally talk about the software engineering tools and techniques that were employed throughout this project.
+This chapter gives and discusses the preparatory work done for this project. We begin by explaining some key computer science concepts and algorithms used in this project, followed by a brief primer on some of the musical knowledge needed for this project. Next, we discuss and justify choices made for real-world data collection and metric calculation. We then discuss the requirements of this project, and finally talk about the software engineering tools and techniques that were employed throughout this project.
 
 \section{Digital Signal Processing Techniques}\label{section:dsp techniques}
 
@@ -230,6 +230,8 @@ We give the formula for convolution of two discrete sequences $\{x_n\} * \{y_n\}
 \label{fig:convolution}
 \end{minipage}
 
+One important property of convolution is that the convolution of two sequences $\{x_n\} * \{y_n\} = \{z_n\}$ is the same as element-wise multiplication in the frequency domain, so $DFT(\{x_n\}) \cdot DFT(\{y_n\}) = DFT(\{z_n\})$, meaning that frequency components that both sequences share will be amplified, and those that they do not share will be diminished.
+
 
 \section{Beat Tracking}\label{sec:beattracking}
 
@@ -261,7 +263,7 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
  \begin{itemize}
 
    \item
-     Take windows of the sound, we use a 32ms wide window and advance by 4ms and compute their DFT in mel.
+     Take windows of the sound, we use a 32ms wide window and advance by 4ms and compute their DFT in the mel scale.
 
    \item
      Across all windows, compute the first-order difference for each pitch band, setting negative values to zero (so they do not interfere with the next step)
@@ -284,6 +286,35 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
  The idea is to iterate over a range of possible tempos, and for each tempo we compute $\tau$, the time between beats at that tempo. Then, we delay our onset function by $\tau$ to get $O(t - \tau)$, and compute the inner product between $O(t)$ and $O(t-\tau)$ to get a measure of how good our tempo guess was, since a good guess will hopefully align the peaks and thus result in a large inner product.
 
  We weight each of these inner products such that tempos closer to 120 BPM are get higher values (humans tend to gravitate towards this tempo), and then take the tempo with the highest value.
+
+
+
+\section{Musical Knowledge}
+
+In order to extract useful musical information from our audio signals, the decisions of what to extract has to be informed by musical knowledge. In this section, we briefly discuss some musical knowledge that helped inform decisions throughout the project.
+
+Firstly, we establish that the music theory we discuss pertains to a specific style of music developed by Western European composers in the 18th century, like J.S. Bach. This is not a global description of music from all over the world, and so we do not claim that the musical knowledge we present applies to all music, only music that is primarily inspired/influenced by this particular style.
+
+\subsection{Pitch and Notes}
+
+Within music (and especially the piano), we consider pitch to be distinct, as opposed to continuous like it is on the frequency spectrum. Each of these discrete pitches is referred to as a note, and the distance between successive notes is called a semitone.
+
+The frequency ratio between successive notes is always the same, and chosen such that that the frequency of a note is half the frequency of the note 12 semitones higher. This means that we group notes into octave groups, each containing 12 notes. Each of these notes has a name: C, C\musSharp{}, D, D\musSharp{}, E, F, F\musSharp{}, G, G\musSharp{}, A, A\musSharp{}, and B (from lowest to highest). This means that we can uniquely identify a note with its name and octave number. The lowest note possible on a piano is A0 (with a frequency of about 28 Hz), and the highest is C8 (with a frequency of about 4200 Hz). It is important to note that notes that only differ by octave (e.g. D3 and D4) often sound similar to the human ear.
+
+\subsection{Time}
+
+Music can be viewed at many different hierarchical temporal levels, but we are mainly concerned with the `pulse', or `beat', of music. Within music, a listener can observe `beats', which occur at reasonably regularly spaced intervals. When notes are played on a beat, they often feel `stronger' than played off-beat, and beats can be perceived even when a note is not played.
+
+
+The speed of a piece of music is called its tempo, and the space between beats influences what tempo is perceived by a listener. Often, tempo is measured in how many beats occur in a minute, called the beats-per-minute (BPM).
+
+Whilst beats are regularly spaced, performers will not be able to play notes on the beat perfectly, and may intentionally alter the beat spacing over the duration of a piece, such that the tempo changes over time.
+
+Furthermore, we can group successive beats into larger groups, called `bars' or `measures'. It is common for bars to be 4 beats long, although this is not always the case (even some of the pieces in our dataset have bars that are 3 beats long).
+
+The temporal pattern in which notes are played between beats/bars is called the rhythm, but we do not make any attempt to infer rhythm.
+
+
 
 
 
@@ -347,10 +378,9 @@ Table \ref{table:requirements} lists requirements and their priorities. These mi
 
 \begin{minipage}{\textwidth}
   \centering
-  \begin{tabular}{l|l}
+  \begin{tabular}{lc}
     \textbf{Requirement} & \textbf{Priority}\\
-    \hline
-    \hline
+    \midrule[0.15em]
     Calculators for each of the 5 proposed metrics & Necessary \\
     \hline
     Similarity scorers for each of the 5 proposed metrics & Necessary \\
@@ -365,7 +395,7 @@ Table \ref{table:requirements} lists requirements and their priorities. These mi
     \hline
     Gathering of real-world piano performances & Necessary
   \end{tabular}
-  \captionof{table}{}
+  \captionof{table}{Requirements and their priorities}
   \label{table:requirements}
 \end{minipage}
 
