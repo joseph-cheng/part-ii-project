@@ -172,7 +172,7 @@ if __name__ == "__main__":
             lowest_score = min(lowest_score, score)
 
         peak_scores.append(peak_score)
-        lowest_score.append(lowest_score)
+        lowest_scores.append(lowest_score)
 
     plt.title("Highest/lowest success vs. noise level")
     plt.ylim([0, 1])
