@@ -7,6 +7,7 @@ import os.path
 import itertools
 import transformations.noise as noise
 import transformations.reverb as reverb
+import transformations.unique_reverb as unique_reverb
 
 """
 TRANSFORMS = [
@@ -14,6 +15,7 @@ TRANSFORMS = [
         reverb.Reverb("../../res/irs/studio.wav")
 ]
 """
+
 
 data_dir = "../../res/data"
 
@@ -55,6 +57,7 @@ def get_files(data_dir, transforms=[]):
     file_dict = {}
 
     for filename in files:
+        print(filename)
         # string processing based on format of filenames
         filename_l = filename.split("_")
         participant_number = int(filename_l[1])
@@ -68,7 +71,7 @@ def get_files(data_dir, transforms=[]):
             audio = util.read_audio(full_path)
             # apply transforms repeatedly
             for transform in transforms:
-                audio = transform.apply(audio)
+                audio = transform.apply(audio, out="out.wav")
 
             AUDIO_CACHE[full_path, tuple(transforms)] = audio
 
@@ -147,12 +150,11 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 if __name__ == "__main__":
     # need to cast to list because we consume the generator in making metric_results
     #transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
-    transform_combinations= [()]
+    transform_combinations= [(unique_reverb.UniqueReverb(["../../res/irs/studio.wav", "../../res/irs/church.wav", "../../res/irs/dales.wav", "../../res/irs/sportscentre.wav"]),)]
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
     for transform_combination in transform_combinations:
 
         metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
-        metric_combinations = [metric_calculator.METRICS[1]]
         for metric_combination in metric_combinations:
             metric_results[transform_combination][metric_combination] = evaluate_metrics(data_dir, metric_combination, transforms=transform_combination)
 

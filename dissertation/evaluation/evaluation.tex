@@ -208,7 +208,35 @@ Furthermore, the peak performance with additional noise is not statistically sig
 
 \subsubsection{Reverb}
 
-One potential cause for the decrease in performance of the chroma metric when adding reverb might be due to the properties of the convolution operation (which we use to implement reverb). Since convolution amplifies frequency components that are shared and diminishes those that are not shared, it is reasonable to expect that chroma vectors extracted from a signal augmented with convolutional reverb will not be as accurate as those extracted from the original signal, and thus the similarity scorer may be unable to distinguish between performers as well.
+One potential cause for the decrease in performance of the chroma metric when adding reverb might be due to the properties of the convolution operation (which we use to implement reverb). Since convolution amplifies frequency components that are shared and diminishes those that are not shared, it is reasonable to expect that chroma vectors extracted from a signal augmented with convolutional reverb will not be as accurate as those extracted from the original signal, and thus the similarity scorer may be unable to distinguish between performers as well. This result still occurs with real reverb, created by playing an audio signal in a room, for example Alvin Lucier's \textit{I Am Sitting In A Room}\cite{alvinlucier}  demonstrates that certain frequencies will attenuate/amplify when real reverb is applied.
+
+Figure \ref{fig:convolution spectrograms} shows excerpts of spectrograms for a performance before and after reverb is added, along with the spectrogram of the impulse response used to generate the reverb. The spectrogram of the impulse response shows that the power is concentrated mostly in the lower frequencies. Subsequently, power of the signal in the performance after reverb is also mostly concentrated in the lower frequencies. This means that, as theorised, chroma vectors for signals under the effects of this reverb will \textit{all} become biased towards the amplified notes.
+
+
+
+
+\begin{figure}[h]\label{fig:convolution spectrograms}
+  \captionsetup{justification=centering}
+\begin{minipage}{.33\textwidth}
+  \includegraphics[scale=0.65]{before_reverb}
+  \subcaption{}
+\end{minipage}%
+\begin{minipage}{.33\textwidth}
+  \flushleft
+  \includegraphics[scale=0.65]{after_reverb}
+  \subcaption{}
+\end{minipage}%
+\begin{minipage}{.33\textwidth}
+  \centering
+  \includegraphics[scale=0.65]{ir}
+  \subcaption{}
+\end{minipage}
+\caption{Spectrograms of a performance before reverb (a), after reverb (b), and the impulse response used to generate reverb (c)}
+\end{figure}
+
+Alternatively, this result could become a boon in certain circumstances. For example, if each of the performers record in different rooms, each with their own acoustic properties, then the frequency attenuation and amplification caused by the reverb effects will be unique to each of the performers, potentially making the chroma metric more effective in these circumstances as it becomes a proxy for measuring the acoustic properties of the room.
+
+In fact, when this was tested, assigning each performer a different impulse response (from a recording studio, a church, a valley, and a sports centre), we found that the success of the chroma metric reached 0.78 (2 s.f.)
 
 
 
