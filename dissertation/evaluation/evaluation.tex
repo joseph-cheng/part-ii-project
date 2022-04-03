@@ -17,7 +17,7 @@
 % how each metric and peak metric success were affected by variations
 % plot graph of noise vs time
 
-In this chapter, we evaluate the success of the project, with reference to the requirements given in Table \ref{table:requirements}. We also explore the absolute performance of the system, as well as comparative success. 
+In this chapter, we evaluate the success of the project, with reference to the requirements given in Table \ref{table:requirements}. We also explore the absolute performance of the system, as well as comparative success, as well as theorising about underlying causes of changes in performance. 
 
 \section{Requirements Analysis Revisited}
 
@@ -151,6 +151,8 @@ By investigating further, we find that only the chroma metric received an increa
 
 The performance of the metrics under noise and reverb transformations is somewhat interesting. In Table \ref{table:transformation results}, we give the success for each individual metric under each combination of transformations, including no transformations (for completeness, this is just the same data we store in Table \ref{table:metric results}).
 
+The impulse response used for generating reverb for these results is the impulse response of a recording studio.
+
 \begin{table}[h]
     \centering
     \begin{tabular}{c|cc}
@@ -183,7 +185,7 @@ The performance of the metrics under noise and reverb transformations is somewha
     \label{table:transformation results}
 \end{table}
 
-%TODO: hypothesis tests
+
 
 As we can see, introduction of transformations causes some performances to have a reduction in performance, but bolsters others. The timbre metric remains completely unaffected by any transformation, which again implies that it is not much better than random.
 
@@ -210,12 +212,12 @@ Furthermore, the peak performance with additional noise is not statistically sig
 
 One potential cause for the decrease in performance of the chroma metric when adding reverb might be due to the properties of the convolution operation (which we use to implement reverb). Since convolution amplifies frequency components that are shared and diminishes those that are not shared, it is reasonable to expect that chroma vectors extracted from a signal augmented with convolutional reverb will not be as accurate as those extracted from the original signal, and thus the similarity scorer may be unable to distinguish between performers as well. This result still occurs with real reverb, created by playing an audio signal in a room, for example Alvin Lucier's \textit{I Am Sitting In A Room}\cite{alvinlucier}  demonstrates that certain frequencies will attenuate/amplify when real reverb is applied.
 
-Figure \ref{fig:convolution spectrograms} shows excerpts of spectrograms for a performance before and after reverb is added, along with the spectrogram of the impulse response used to generate the reverb. The spectrogram of the impulse response shows that the power is concentrated mostly in the lower frequencies. Subsequently, power of the signal in the performance after reverb is also mostly concentrated in the lower frequencies. This means that, as theorised, chroma vectors for signals under the effects of this reverb will \textit{all} become biased towards the amplified notes.
+Figure \ref{fig:convolutionspectrograms} shows excerpts of spectrograms for a performance before and after reverb is added, along with the spectrogram of the impulse response used to generate the reverb. The spectrogram of the impulse response shows that the power is concentrated mostly in the lower frequencies. Subsequently, power of the signal in the performance after reverb is also mostly concentrated in the lower frequencies. This means that, as theorised, chroma vectors for signals under the effects of this reverb will \textit{all} become biased towards the amplified notes.
 
 
 
 
-\begin{figure}[h]\label{fig:convolution spectrograms}
+\begin{figure}[h]
   \captionsetup{justification=centering}
 \begin{minipage}{.33\textwidth}
   \includegraphics[scale=0.65]{before_reverb}
@@ -232,11 +234,41 @@ Figure \ref{fig:convolution spectrograms} shows excerpts of spectrograms for a p
   \subcaption{}
 \end{minipage}
 \caption{Spectrograms of a performance before reverb (a), after reverb (b), and the impulse response used to generate reverb (c)}
+  \label{fig:convolutionspectrograms}
 \end{figure}
 
 Alternatively, this result could become a boon in certain circumstances. For example, if each of the performers record in different rooms, each with their own acoustic properties, then the frequency attenuation and amplification caused by the reverb effects will be unique to each of the performers, potentially making the chroma metric more effective in these circumstances as it becomes a proxy for measuring the acoustic properties of the room.
 
-In fact, when this was tested, assigning each performer a different impulse response (from a recording studio, a church, a valley, and a sports centre), we found that the success of the chroma metric reached 0.78 (2 s.f.)
+In fact, when this was tested, assigning each performer a different impulse response (from a recording studio, a church, a valley, and a sports centre), we found that the success of the chroma metric reached 0.78 (2 s.f.), which is statistically significant compared to having no transformations applied ($p=0.05$).
+
+Unfortunately, due to our construction of reverb, we cannot vary the level of reverb that is applied to a sound signal continuously, as we can with our noise (by increasing the amplitude of the noise sample). However, we can use samples of impulse responses that produce more reverb. This is exactly what we did, and gathered results when using an impulse response gathered both in a church and a sports centre, compared to the impulse response used for the initial results in Table \ref{table:transformation results}. The church IR produces more reverb than the studio IR, and the sports center IR more than the church IR. We present the results in Table \ref{table:reverb results}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{cCCC}
+    \textbf{Metric}&\textbf{Success with studio reverb} (2 s.f.)&\textbf{Success with church reverb} (2 s.f.)&\textbf{Success with sports centre reverb} (2 s.f.)\\
+        \midrule[0.15em]
+        Tempo variation over time & 0.38 & 0.47 &0.34\\
+        Dynamics over time&0.53&0.69&0.81\\
+        Chroma vector extraction&0.38&0.34&0.53\\
+        Note offsets&0.69&0.66&0.53\\
+        Timbre extraction&0.25&0.25&0.25\\
+  \end{tabular}
+  \caption{Results for varying reverb}
+  \label{table:reverb results}
+\end{table}
+
+Most variations in success are not statistically significant ($p=0.05$). However, the dynamics metric shows large jumps in success when reverb is added. Again, like the results for adding noise, this is counter-intuitive since we seem to be able to increase performance by making our data `worse'. However, this particular result comes from an implementation detail in the dynamics similarity calculator: in order to calculate the similarity of two dynamics metrics, we truncate the longer metric to match the length of the other. As a result of doing this, the reverb tail of the shorter metric will remain, whereas the reverb tail of the longer metric gets truncated. Since the reverb tail gets very quiet, we end up comparing the loudness of a quiet reverb tail against the loudness of when someone is actually playing notes. This means that when two audio signals are dissimilar in duration, they are marked as dissimilar by the dynamics metric. Since the same performer tends to play the same piece for the same duration, the dynamics metric is able to get high success when we apply more reverb, since there is a longer reverb tail.
+
+One important consideration about use of this system that this analysis reveals is that input data should be edited to ensure that periods where there is no playing (both at the start and end of an audio signal) should be cut out, to avoid this scenario. 
+
+%TODO: include graphs of two dynamics metrics with same vs different performer (code should be set up to do this)
+
+\section{Summary}
+
+In this section, we have seen that all of the core requirements of the project have been met, although missing an extension requirement. We have seen that the system is able to obtain reasonably good performance, far surpassing random. We have seen that combining metrics allows a larger portion of the data to be correctly identified, since the spaces of performers that each metric can identify do not overlap completely. Finally, we have also seen that the system is able to sustain most of its performance when the audio is altered by transforming it in some way, and we have looked at some anomalies that arise in the system when transformations are applied and the reasons behind them.
+
+
 
 
 

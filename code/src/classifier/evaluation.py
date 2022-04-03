@@ -150,11 +150,15 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 if __name__ == "__main__":
     # need to cast to list because we consume the generator in making metric_results
     #transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
-    transform_combinations= [(unique_reverb.UniqueReverb(["../../res/irs/studio.wav", "../../res/irs/church.wav", "../../res/irs/dales.wav", "../../res/irs/sportscentre.wav"]),)]
+    transform_combinations = [
+            (reverb.Reverb("../../res/irs/church.wav"),),
+            (reverb.Reverb("../../res/irs/sportscentre.wav"),),
+            ]
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
     for transform_combination in transform_combinations:
 
         metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+        metric_combinations = [(metric_calculator.METRICS[1],)]
         for metric_combination in metric_combinations:
             metric_results[transform_combination][metric_combination] = evaluate_metrics(data_dir, metric_combination, transforms=transform_combination)
 

@@ -134,7 +134,25 @@ The parser is simple and linear, we never need to do any backtracking. We consum
 The \texttt{<note>} tag does not specify a start time, it is instead implied by the durations of all previous notes. This means that in order to have multiple notes play at the same time, we need the concept of voices. Each voice progresses in time independently, and each \texttt{<note>} specifies a voice, so we simply keep track of all of the voices progress to find the start and end time for each note.
 
 In music, tied notes are notes of the same pitch that occur adjacently, along with a tie marking. Tied notes are played instead as a single note, with subsequent tied notes indicating extra duration. In MusicXML, tied notes generate multiple \texttt{<note>} tags, so we should not always generate a new note to play when we see a \texttt{<note>} tag. We have to keep track of whether or not the previous note was tied, and if it was then we simply extend the duration of the previous note.
-% TODO: include picture of tied note?
+
+Figure \ref{fig:tied notes} shows an two untied and one tied note. In MusicXML, both of these would be represented with two distinct \texttt{<note>} tags, even though the tied note is essentially equivalent to a single note.
+
+
+
+\begin{figure}[h]
+  \label{fig:tied notes}
+  \begin{minipage}{0.5\textwidth}
+    \centering
+    \includegraphics[scale=0.3]{tied}
+    \subcaption{}
+  \end{minipage}%
+  \begin{minipage}{0.5\textwidth}
+    \centering
+    \includegraphics[scale=0.3]{untied}
+    \subcaption{}
+  \end{minipage}
+  \caption{Untied notes (a) vs tied note (b)}
+\end{figure}
 
 \subsection{Pianist Profiles}
 
@@ -484,9 +502,14 @@ We also allow for the user to specify the loudness of the noise overall.
 
 This transformation is implemented in \texttt{src/classifier/transformations/reverb.py}.
 
-When a sound is played in a room, it will reflect, and be absorbed by, surfaces in the room. These reflections cause an echo-like effect to be heard, and as the sound waves are absorbed, the reverberation becomes diminish until they become inaudible.
+When a sound is played in a room, it will reflect, and be absorbed by, surfaces in the room. These reflections cause an echo-like effect to be heard, and as the sound waves are absorbed, the reverberation becomes diminish until they become inaudible. Figure \ref{fig:reverb} shows visually what reverb looks like, where the tail of a sound is significantly extended.
 
-%TODO: include diagram of sound with/without reverb
+\begin{figure}[h]\label{fig:reverb}
+  \centering
+  \includegraphics[scale=0.35]{reverb}
+  \caption{Result of applying convolution reverb}
+\end{figure}
+
 
 In music production, numerous techniques are used to simulate reverb. There are acoustic techniques like plate or spring reverb which involve passing the sound signal through a metal plate/spring and recording the results, but these acoustic techniques would be infeasible to implement for our application.
 
@@ -507,11 +530,8 @@ In this chapter, we have explored the structure of the software implemented, and
 
 
 % THINGS TO REMEMBER:
-% todo: try and change dynamics metric to compare meaningfully between beat times??
 %todo: write about no tests
 % play two Cs an octave apart for chroma vector extraction section
-% show that combination of chroma/dynamics is better, with explanation in chroma similarity scorer
-%TODO: also add musical jargon to preparation chapter?
 
 
 

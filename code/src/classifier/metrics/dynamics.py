@@ -99,6 +99,15 @@ class DynamicsCalculator(metric.MetricCalculator):
         power_array1 = power_array1 / highest_value
         power_array2 = power_array2 / highest_value
 
+        # PLOTTING CODE
+        plt.rcParams.update({'font.size': 30})
+        plt.plot(power_array1, label=audio1.name)
+        plt.plot(power_array2, label=audio2.name)
+        plt.xticks([])
+        plt.yticks([])
+        plt.legend()
+        plt.show()
+
         # now we find the sum of the squared errors
 
         squared_differences_sum = np.sum((power_array1 - power_array2)**2)
