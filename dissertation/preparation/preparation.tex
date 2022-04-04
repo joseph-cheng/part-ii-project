@@ -17,11 +17,42 @@
 
 
 
-This chapter gives and discusses the preparatory work done for this project. We begin by explaining some key computer science concepts and algorithms used in this project, followed by a brief primer on some of the musical knowledge needed for this project. Next, we discuss and justify choices made for real-world data collection and metric calculation. We then discuss the requirements of this project, and finally talk about the software engineering tools and techniques that were employed throughout this project.
+This chapter gives and discusses the preparatory work done for this project. We begin with a brief primer on some of the musical knowledge needed to understand this project. Then, we explain the key computer science concepts and algorithms used in this project. Next, we discuss and justify choices made for real-world data collection and metric calculation. We then discuss the requirements of this project, and finally talk about the software engineering tools and techniques that were employed throughout this project.
+
+
+\section{Musical Knowledge}
+
+In order to extract useful musical information from our audio signals, the decisions of what to extract has to be informed by musical knowledge. In this section, we briefly discuss some musical knowledge that helped inform decisions throughout the project.
+
+Firstly, we establish that the music theory we discuss pertains to a specific style of music developed by Western European composers in the 18th century, like J.S. Bach. This is not a global description of music from all over the world, and so we do not claim that the musical knowledge we present applies to all music, only music that is primarily inspired/influenced by this particular style. In this section, when we make claims about music, know that these claims are only written to apply to this style of music.
+
+\subsection{Pitch and Notes}
+
+Within music (and especially the piano), we consider pitch to be distinct, as opposed to continuous like it is on the frequency spectrum. Each of these discrete pitches is referred to as a note, and the distance between successive notes is called a semitone.
+
+The frequency ratio between successive notes is always the same, and chosen such that that the frequency of a note is half the frequency of the note 12 semitones higher. This means that we group notes into octave groups, each containing 12 notes. Each of these notes has a name: C, C\musSharp{}, D, D\musSharp{}, E, F, F\musSharp{}, G, G\musSharp{}, A, A\musSharp{}, and B (from lowest to highest). This means that we can uniquely identify a note with its name and octave number. The lowest note possible on a piano is A0 (with a frequency of about 28 Hz), and the highest is C8 (with a frequency of about 4200 Hz). It is important to note that notes that only differ by octave (e.g. D3 and D4) often sound similar to the human ear.
+
+\subsection{Time}
+
+Music can be viewed at many different hierarchical temporal levels, but we are mainly concerned with the `pulse', or `beat', of music. Within music, a listener can observe `beats', which occur at reasonably regularly spaced intervals. When notes are played on a beat, they often feel `stronger' than played off-beat, and beats can be perceived even when a note is not played.
+
+
+The speed of a piece of music is called its tempo, and the space between beats influences what tempo is perceived by a listener. Often, tempo is measured in how many beats occur in a minute, called the beats-per-minute (BPM).
+
+Whilst beats are regularly spaced, performers will not be able to play notes on the beat perfectly, and may intentionally alter the beat spacing over the duration of a piece, such that the tempo changes over time.
+
+Furthermore, we can group successive beats into larger groups, called `bars' or `measures'. It is common for bars to be 4 beats long, although this is not always the case (even some of the pieces in our dataset have bars that are 3 beats long).
+
+The temporal pattern in which notes are played between beats/bars is called the rhythm, but we do not make any attempt to infer rhythm.
+
+
+
+
+
 
 \section{Digital Signal Processing Techniques}\label{section:dsp techniques}
 
-First, we introduce some important DSP concepts and techniques: the Fourier transform, the discrete time Fourier transform, the discrete Fourier transform, and the mel scale.
+First, we introduce some important DSP concepts and techniques: the Fourier transform, the discrete time Fourier transform, the discrete Fourier transform, the mel scale, and convolution.
 
 In DSP, we can model an analog signal as a continuous function of time $x(t)$, and a digital signal as a discrete sequence $\{x_n\} = \ldots, x_{-2}, x_{-1}, x_0, x_1, x_2, \ldots$, essentially a list of numbers. With a sampling period $t_s$ we can sample an analog signal $x(t)$ to generate a digital signal $\{x_n\}$ as follows: $\{x_n\} = x(nt_s)$, or equivalently with sampling period $f_s$ we get $\{x_n\} = x(\frac{n}{f_s})$
 
@@ -39,7 +70,7 @@ Here, the symbol $j$ refers to $\sqrt{-1}$. By rewriting $e^{-j2\pi ft}$ as $\co
   X(f) = \mathcal{F}\{x(t)\}(f) = \int_{-\infty}^\infty x(t)[\cos(2\pi ft) - j\sin(2\pi f t)] \mathrm{d}t
 \end{equation}
 
-Here, it is more obvious that we are taking the frequency content of $x(t)$. It should be noted that the Fourier transform generates complex values. However, if the signal $x(t)$ is both real and even, then its Fourier transform $X(f)$ will also be real and even. Subsequently, if $X(f)$ is real and even, then the values for negative $f$ contain the same information as the values for non-negative $f$, so we can purely consider real, non-negative frequencies, which makes interpreting the Fourier transform in a real-world sense easier.
+Here, it is more obvious that we are taking the frequency content of $x(t)$. It should be noted that the Fourier transform generates complex values. However, if the signal $x(t)$ is both real and even (as audio signals are), then its Fourier transform $X(f)$ will also be real and even. Subsequently, if $X(f)$ is real and even, then the values for negative $f$ contain the same information as the values for non-negative $f$, so we can purely consider real, non-negative frequencies, which makes interpreting the Fourier transform in a real-world sense easier.
 
 As an example, we provide the Fourier transform of the box function in Figure \ref{fig:ft example}.
 
@@ -102,9 +133,9 @@ This does not require much work to calculate, and for a finite sequence $x_0, \l
 
 \subsection{The Mel Scale}
 
-The mel scale is a scale of frequencies that intends to map distance between frequencies to differenecs in perceptual pitch. This is useful for this project, since the quantity we actually care about is pitch, and not Hertz frequency.
+The mel scale is a scale of frequencies that intends to map distance between frequencies to differences in perceptual pitch. This is useful for this project, since the quantity we actually care about is perceived pitch, and not a measure of frequency in Hertz.
 
-There are many different definitions for the mel scale, since perceptual pitch is a relatively subjective meausre, but we use the definition in Equation \ref{eq:mel}, where $f$ is a frequency in Hertz and $m$ is the corresponding frequency in the mel scale:
+There are many different definitions for the mel scale, since perceptual pitch is a relatively subjective measure, but we use the definition in Equation \ref{eq:mel}, where $f$ is a frequency in Hertz and $m$ is the corresponding frequency in the mel scale:
 
 \begin{equation}\label{eq:mel}
   m = 2595\log_{10}\left(1 + \frac{f}{700}\right)
@@ -235,11 +266,11 @@ One important property of convolution is that the convolution of two sequences $
 
 \section{Beat Tracking}\label{sec:beattracking}
 
-Beat tracking is the technique of taking some audio signal of music, and attempting to find the location of beats, or the pulse, of the music. This is not the same as rhythm, since rhythm is more concerned with the location of individual notes, whereas beats are a steady pulse perceived by humans throughout a whole piece of music. The technique we use for beat tracking comes from a paper by Ellis \cite{ellis07} and makes use of dynamic programming techniques.
+Beat tracking is the technique of taking some audio signal of music, and attempting to find the location of beats, or the pulse, of the music.. The technique we use for beat tracking comes from a paper by Ellis \cite{ellis07} and makes use of dynamic programming techniques.
 
 In this section, we give a brief overview of the algorithm. For an in-depth explanation, see Ellis' original paper \cite{ellis07}.
 
-To perform beat tracking, we assume the existence of some onset function and a global tempo estimate, Ellis' constructions of which we explore further in Sections \ref{subsec:onset detection} and \ref{subsec:tempo inference} respectively. An onset function tracks where perceptual note onsets are in an audio signal as seen in Figure \ref{fig:onsetfunction}, and a tempo estimate is simply an estimate of how fast the piece is being played overall, in beats per minute (BPM).
+To perform beat tracking, we assume the existence of some onset function and a global tempo estimate, Ellis' constructions of which we explore further in Sections \ref{subsec:onset detection} and \ref{subsec:tempo inference} respectively. An onset function tracks where perceptual note onsets are in an audio signal as seen in Figure \ref{fig:onsetfunction}, and a tempo estimate is simply an estimate of how fast the piece is being played overall, in BPM.
 
 
 The dynamic programming algorithm for beat tracking works by assuming we have some already optimal set of previous beat times, and then searching for the next beat time by trying to find a time with a high onset function value, as well as being coherent with the tempo estimate.
@@ -263,7 +294,7 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
  \begin{itemize}
 
    \item
-     Take windows of the sound, we use a 32ms wide window and advance by 4ms and compute their DFT in the mel scale.
+     Take windows of the sound, we use a 32ms wide window and advance of 4m,s and compute their DFT in the mel scale.
 
    \item
      Across all windows, compute the first-order difference for each pitch band, setting negative values to zero (so they do not interfere with the next step)
@@ -289,44 +320,14 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
 
 
 
-\section{Musical Knowledge}
-
-In order to extract useful musical information from our audio signals, the decisions of what to extract has to be informed by musical knowledge. In this section, we briefly discuss some musical knowledge that helped inform decisions throughout the project.
-
-Firstly, we establish that the music theory we discuss pertains to a specific style of music developed by Western European composers in the 18th century, like J.S. Bach. This is not a global description of music from all over the world, and so we do not claim that the musical knowledge we present applies to all music, only music that is primarily inspired/influenced by this particular style.
-
-\subsection{Pitch and Notes}
-
-Within music (and especially the piano), we consider pitch to be distinct, as opposed to continuous like it is on the frequency spectrum. Each of these discrete pitches is referred to as a note, and the distance between successive notes is called a semitone.
-
-The frequency ratio between successive notes is always the same, and chosen such that that the frequency of a note is half the frequency of the note 12 semitones higher. This means that we group notes into octave groups, each containing 12 notes. Each of these notes has a name: C, C\musSharp{}, D, D\musSharp{}, E, F, F\musSharp{}, G, G\musSharp{}, A, A\musSharp{}, and B (from lowest to highest). This means that we can uniquely identify a note with its name and octave number. The lowest note possible on a piano is A0 (with a frequency of about 28 Hz), and the highest is C8 (with a frequency of about 4200 Hz). It is important to note that notes that only differ by octave (e.g. D3 and D4) often sound similar to the human ear.
-
-\subsection{Time}
-
-Music can be viewed at many different hierarchical temporal levels, but we are mainly concerned with the `pulse', or `beat', of music. Within music, a listener can observe `beats', which occur at reasonably regularly spaced intervals. When notes are played on a beat, they often feel `stronger' than played off-beat, and beats can be perceived even when a note is not played.
-
-
-The speed of a piece of music is called its tempo, and the space between beats influences what tempo is perceived by a listener. Often, tempo is measured in how many beats occur in a minute, called the beats-per-minute (BPM).
-
-Whilst beats are regularly spaced, performers will not be able to play notes on the beat perfectly, and may intentionally alter the beat spacing over the duration of a piece, such that the tempo changes over time.
-
-Furthermore, we can group successive beats into larger groups, called `bars' or `measures'. It is common for bars to be 4 beats long, although this is not always the case (even some of the pieces in our dataset have bars that are 3 beats long).
-
-The temporal pattern in which notes are played between beats/bars is called the rhythm, but we do not make any attempt to infer rhythm.
-
-
-
-
-
-
  \section{Data Collection}\label{sec:datacollection}
 
 
- To evaluate the project, first-hand data had to be collected. The system requires multiple performances of the same piece by the same pianist, and generally performers tend to only ever upload one performance of a piece. This meant that I had to find both performers and pieces for them to perform, so that I could record them. Overall, there were 4 (TODO: change if get more) performers, each performing 4 pieces twice.
+ To evaluate the project, real-world data had to be collected first-hand. The system requires multiple performances of the same piece by the same pianist, and generally performers tend to only ever upload one performance of a piece. This meant that we had to find both performers and pieces for them to perform, so that we could record them. Overall, there were 4 performers, each performing 4 pieces twice.
 
 The subjects used all had experience in playing the piano, or else it would be unlikely that any unique nuances in playing could be found and identified. They were all experienced enough to be able to take a short excerpt of a piece of music, and be able to perform it well within a short time (around 15 minutes).
 
-The pieces were chosen to be not too difficult, such that performers could learn them quickly, as well as be complex enough such that a reasonable amount of expression could be given in the performances. Furthermore, only short excerpts of the pieces were taken (around 8-16 bars). Scores of each of the excerpts are given in the appendix (TODO). The pieces chosen are given below:
+The pieces were chosen to be not too difficult, such that performers could learn them quickly, as well as be complex enough such that a reasonable amount of expression could be given in the performances. Furthermore, only short excerpts of the pieces were taken (around 8-16 bars). Scores of each of the excerpts are given in Appendix A. The pieces chosen are given below:
 
 \begin{itemize}
   \item Handel - Largo (from Xerxes)
@@ -366,7 +367,7 @@ For example, with raw audio recordings we can make guesses at where notes are pl
 
 Furthermore, due to the system intended to work on performances of the same piece, we can try and measure qualities of a particular performer's interpretation of the piece with metrics like tempo variation over time and dynamics over time.
 
-The timbre extraction metric, as explained before, is hard to give a semantic meaning for. It in essence works by taking the DFT of windows of the signal, and transformation each of these DFTs with a discrete cosine transform (similar to the DFT) to obtain some coefficients for each window, yielding some form of spectrogram for the entire signal. 
+The timbre extraction metric, as explained before, is hard to give a semantic meaning for. It in essence works by taking the DFT of windows of the signal, and transformation each of these DFTs with a discrete cosine transform (similar to the DFT) to obtain some coefficients for each window that represent its harmonic content, yielding some form of spectrogram for the entire signal.
 
 
 
@@ -422,7 +423,11 @@ Python has available a number of libraries that allowed for fast development of 
 
 \subsection{Version Control}
 
-For version control, \texttt{git} was used and the repository was maintained on GitHub. Furthermore, a backup of the repository was periodically made and stored on a USB drive in case of failure.
+For version control, \texttt{git} was used and the repository was maintained on GitHub, using Git LFS to store binary data, such as audio files. Furthermore, a backup of the repository was periodically made and stored on a USB drive in case of failure.
+
+\section{Summary}
+
+In this chapter, we have given and explained key concepts in music theory and digital signal processing that are used throughout the project. We also outline and justify choices made in data collection and choice of metrics. Finally, we look at the requirements of the project, and describe the purpose of chosen software tools and technologies used.
 
 
 

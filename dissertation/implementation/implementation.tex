@@ -113,11 +113,13 @@ A high-level overview of the repository is given in Figure \ref{fig:repositoryov
 \label{fig:repositoryoverview}
 \end{figure}
 
+Noticeably, unit tests are missing from the repository. This was by choice, however. Most of the code went through significant changes, in both implementation and expected result. Implementing unit testing for one of the metric calculators, for example, would have been mostly useless since it is likely that the design of that metric calculator would soon change.
+
 All of the code was written by the dissertation author. All files in the \texttt{res/data/} directory were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
 
 Files in the \texttt{irs/} directory were taken from the University of York's \href{https://www.openairlib.net}{OpenAir} project under the Creative Commons 4.0 License\footnote{\url{https://creativecommons.org/licenses/by/4.0/}}.
 
-All other files were taken using the Creative Commons 1.0 license.
+All other data files were taken using the Creative Commons 1.0 license.
 
 \section{Data Synthesis}\label{sec:datasynthesis}
 
@@ -125,7 +127,7 @@ In this section we discuss the implementation of the data synthesis module creat
 
 \subsection{MusicXML Parser}
 
-MusicXML is a file format designed to score music scores for computer-readability \cite{musicxml}. It specifies a number of XML tags and their usage relating to musical structure.
+MusicXML is a file format designed to store music scores for computer-readability \cite{musicxml}. It specifies a number of XML tags and their usage relating to musical structure.
 
 The parser simply needs to understand each of these tags, and convert the XML into a format that is usable for audio generation. The format we want to turn the MusicXML into is essentially a list of \texttt{Note} objects (defined in \texttt{src/data\_synthesis/piece.py}), where each \texttt{Note} specifies a pitch, start time, and duration. From this, we can easily generate audio.
 
@@ -133,14 +135,13 @@ The parser is simple and linear, we never need to do any backtracking. We consum
 
 The \texttt{<note>} tag does not specify a start time, it is instead implied by the durations of all previous notes. This means that in order to have multiple notes play at the same time, we need the concept of voices. Each voice progresses in time independently, and each \texttt{<note>} specifies a voice, so we simply keep track of all of the voices progress to find the start and end time for each note.
 
-In music, tied notes are notes of the same pitch that occur adjacently, along with a tie marking. Tied notes are played instead as a single note, with subsequent tied notes indicating extra duration. In MusicXML, tied notes generate multiple \texttt{<note>} tags, so we should not always generate a new note to play when we see a \texttt{<note>} tag. We have to keep track of whether or not the previous note was tied, and if it was then we simply extend the duration of the previous note.
+In music, tied notes are notes of the same pitch that occur adjacently, along with a tie marking. Tied notes are played as if they were a single note, with the duration of all of the tied notes combined. In MusicXML, tied notes generate multiple \texttt{<note>} tags, so we should not always generate a new note to play when we see a \texttt{<note>} tag. We have to keep track of whether or not the previous note in our voice was tied, and if it was then we simply extend the duration of the previous note.
 
-Figure \ref{fig:tied notes} shows an two untied and one tied note. In MusicXML, both of these would be represented with two distinct \texttt{<note>} tags, even though the tied note is essentially equivalent to a single note.
+Figure \ref{fig:tied notes} shows two untied notes and one tied note. In MusicXML, both of these would be represented with two distinct \texttt{<note>} tags, even though the tied note is essentially equivalent to a single note.
 
 
 
 \begin{figure}[h]
-  \label{fig:tied notes}
   \begin{minipage}{0.5\textwidth}
     \centering
     \includegraphics[scale=0.3]{tied}
@@ -152,6 +153,7 @@ Figure \ref{fig:tied notes} shows an two untied and one tied note. In MusicXML, 
     \subcaption{}
   \end{minipage}
   \caption{Untied notes (a) vs tied note (b)}
+  \label{fig:tied notes}
 \end{figure}
 
 \subsection{Pianist Profiles}
@@ -168,14 +170,14 @@ To synthesise audio, we make use of the \texttt{fluidsynth} library for Python. 
 
 A soundfont is effectively a collection of samples, that specifies how to generate audio for a note with a given pitch and duration.
 
-Then, as designed, our \texttt{Piece} class makes it very easily to generate note-on and note-off events. For each note in our piece, we can generate a corresponding note-on and note-off event from its start time and duration. Once generating these events for all notes, we can simply sort them by time and handle them one-by-one, and \texttt{fluidsynth} will generate an audio signal for us.
+Then, as designed, our \texttt{Piece} class makes it very easily to generate note-on and note-off events. For each note in our piece, we can generate a corresponding note-on and note-off event from its start time and duration. Once generating these events for all notes, we can simply sort them by time and handle them one-by-one, and \texttt{fluidsynth} will generate an audio signal that we can save to disk.
 
 
 \section{Metric Calculators}
 
 In this section we detail and justify the specific algorithms used for each of the metric calculators.
 
-The structure of this implementation is designed around modularity: it should be easy to create new metric calculators and have them evaluated. For this, we want each metric calculator to implement a function that calculates a metric given some audio, and a function that calculates the similarity between two metrics. To do this, we define a class \texttt{MetricCalculator} in \texttt{src/classifier/metrics/metric.py} with three functions: \texttt{\_\_init\_\_()} (a constructor), \texttt{calculate\_metric(audio)}, and \texttt{calculate\_similarity(audio1, audio2, metric1, metric2)}. Python3 does not support abstract/virtual methods, so we instead define each of these functions to raise a \texttt{NotImplementedError} on call, forcing all classes that inherit from it to override these methods.
+The structure of this implementation is designed around modularity: it should be easy to create new metric calculators and have them evaluated. For this, we want each metric calculator to implement a function that calculates a metric given some audio, and a function that calculates the similarity between two metrics. To do this, we define a class \texttt{MetricCalculator} in \texttt{src/classifier/metrics/metric.py} with three functions: \texttt{\_\_init\_\_()} (a constructor), \texttt{calculate\_metric(audio)}, and \texttt{calculate\_similarity(audio1, audio2, metric1, metric2)}. Python3 does not support abstract/virtual methods, so for the \texttt{MetricCalculator} class we instead define each of these functions to raise a \texttt{NotImplementedError} on call, forcing all classes that inherit from it to override these methods.
 
 
 \begin{itemize}
@@ -211,9 +213,9 @@ In fact, all we do is run our beat tracking algorithm on our audio and take the 
 
 There were a few other choices for constructing this metric, for example instead of taking the first-order difference of our beat times, we could simply use the beat times themselves. To see the issues with this approach, suppose we have two performances that have very similar tempos in the latter half, but are different in the first half. We would like to consider these performances reasonably similar since the tempos are similar in the latter half, but by taking the absolute beat times we are unable to find any similarity since the differing tempos in the first half will offset the beat times in the latter half. Taking the first-order difference avoids this issue. Another option might be taking higher-order differences, which seems like it might have some merits. For example, a second-order difference would allow us to easily find where a piece is speeding up/slowing down as opposed to just fast/slow, but by doing this we lose the information on whether the piece actually is being played fast/slow, which isn't ideal.
 
-Furthermore, the smoothing we perform is very important. Being able to avoid these micro-variations is incredibly useful, since this metric really intends to capture an overall view of how tempo changes over the performance of the piece, and not a microscopic view of timings within each bar, for example.
+Furthermore, the smoothing we perform is important. Being able to avoid these micro-variations is useful, since this metric really intends to capture an overall view of how tempo changes over the performance of the piece, and not a microscopic view of timings within each bar, for example.
 
-We are also able to tune how much of this smoothing we get on our beat time differences by changing the window size of our moving average. For our case, we choose a window size of 4 beats, which corresponds to the length of a bar (the next level up in the temporal structure of music) in most Western European music, which is what our dataset consists of.
+We are also able to tune how much of this smoothing we get on our beat time differences by changing the window size of our moving average. For our case, we choose a window size of 4 beats, which corresponds to the length of a bar in most Western European music, which is what our dataset consists of.
 
 Our tempo variation over time metric is then calculated as follows, which includes operation of the beat tracking algorithm described in Section \ref{sec:beattracking}.
 
@@ -229,14 +231,13 @@ Our tempo variation over time metric is then calculated as follows, which includ
 
   \item
     Take the first-order difference of these beat times and take a moving average as our final metric.
-    Take the first-order difference of these beat times and take a moving average as our final metric.
 
     
 \end{enumerate}
 
 \subsubsection{Similarity Scorer}\label{sec:temposimilarity}
 
-To calculate the similarity between two tempo metrics we use a technique which we will frequently see in the similarity scorers for other metrics: calculating the mean squared error. We can consider our tempo metric as being a function of beat number, returning us the time difference between the last beat. Then, to calculate the similarity between two metrics, we just take the mean squared error between these two functions (truncating the longer function if necessary), giving us a number we call $\varepsilon$.
+To calculate the similarity between two tempo metrics we use a technique which we will frequently see in the similarity scorers for other metrics: calculating the mean squared error. We can consider our tempo metric as being a function of beat number, returning us the time difference between the previous beat and the current beat. Then, to calculate the similarity between two metrics, we just take the mean squared error between these two functions (truncating the longer function if necessary), giving us a number we call $\varepsilon$.
 
 This is not yet useful as a similarity score, however, since it can grow unboundedly large, so we return the error as $e^{-\varepsilon}$. The intuition behind the choice of this transformation is that if our two performances are the same, we expect $\varepsilon$ to be equal to 0, and thus $e^{-\varepsilon}$ will be 1. As $\varepsilon$ grows, $e^{-\varepsilon}$ will approach 0, which gives us a useful similarity score.
 
@@ -268,7 +269,7 @@ All of this leads to the following algorithm for computing our dynamics metric:
 
 \begin{enumerate}[label=\textbf{Step \arabic*:}]
   \item
-    First, take windows of the signal. We use a window size of 0.16 seconds and a window advance of 0.04 seconds. This solves problem 2.
+    First, take windows of the signal. We use a window size of 160 ms and a window advance of 40 ms. This solves problem 2.
 
   \item
     For each window, calculate its power spectrum (by computing its Fourier transform and calculating the energy in each frequency band). This solves problem 1 (the power spectrum is always positive), and will help us solve problem 4 later.
@@ -314,15 +315,15 @@ This metric tries to capture the notes that are being played at a particular tim
 
 Since this system is designed just for use with piano, we can therefore restrict ourselves to the twelve-tone scale found in most Western music, where each octave is split into 12 equally distanced notes. This means that the current implementation of this metric would be unsuitable for music that lies outside of this musical system, like micro-tonal music.
 
-For this metric, we also decide not to determine which octave the notes lie in, and instead consider the 12 tones irrespective of their octave. This is because it can be difficult to distinguish the same note in different octaves, since the frequency content is so similar. % (as seen in Figure blahblah).
+For this metric, we also decide not to determine which octave the notes lie in, and instead consider the 12 tones irrespective of their octave. This is because it can be difficult to distinguish the same note in different octaves, since the frequency content is so similar because the fundamental frequency is just doubled. % (as seen in Figure blahblah).
 
-So, we can now define a chroma vector as being a 12-element vector, where each element corresponds to the `strength' of a particular note, as seen earlier in Figure \ref{figure:chromaplot}. Our metric is then just an array of these chroma vectors over time.
+So, we can now define a chroma vector as being a 12-element vector, where each element is a number between 0 and 1, corresponding to the `strength' of a particular note, as seen earlier in Figure \ref{figure:chromaplot}. Our metric is then just an array of these chroma vectors over time.
 
 To calculate a chroma vector, we look at the frequency content of our signal, and for each possible note (here, we make a distinction between notes in different octaves), summing up the frequency content for that note's frequency band, and adding it to the corresponding element of our chroma vector.
 
 \begin{enumerate}[label=\textbf{Step \arabic*:}]
   \item
-    First, take windows of our signal. We use a window size of 0.1 seconds and a window advance of 0.025 seconds.
+    First, take windows of our signal. We use a window size of 100 ms and a window advance of 25 ms.
 
   \item
     For each window, calculate its chroma vector:
@@ -363,9 +364,9 @@ This metric is implemented in the \texttt{src/classifier/metrics/offsets.py} fil
 
 This metric tries to capture micro-variations in rhythm from a performer, in some sense how `accurate' their playing of notes is. Unlike the other metrics that generate some kind of function/curve from the audio signal, this metric instead works by modelling the performer's micro-variations as a probability distribution, and we just return the parameters of this probability distribution.
 
-We do this because it is unlikely a performer would reliably have the same micro-variations at each note that is played. This means that if we were to, for example, store for each beat the time difference (offset) between the beat and when the performer actually played the note, and then for our similarity scorer calculated the mean squared error between each beat's offset, we would be unlikely to obtain good results (Note for John: I have data that supports this, getting around a 14\% success rate with this proposed naive solution, compared to around 65\% with the current technique. Is that worth mentioning here, or should I wait until the evaluation section?).
+We do this because it is unlikely a performer would reliably have the same micro-variations at each note that is played. This means that if we were to, for example, store for each beat the time difference (offset) between the beat and when the performer actually played the note, and then for our similarity scorer calculated the mean squared error between each beat's offset, we would be unlikely to obtain high performance.
 
-So, from the offsets we generate the mean and standard deviation for a normal distribution, representing when they are most likely to play a note relative to the expected beat time. Figure \ref{fig:offsetdists} shows plots of inferred probability distributions for different performers and the same performer, respectively. Our algorithm works as follows:
+So, from the offsets we generate the mean and standard deviation for a normal distribution, representing when they are most likely to play a note relative to the expected beat time. Figure \ref{fig:offsetdists} shows plots of inferred probability distributions for different performers and the same performer, respectively, indicating that this is a sensible technique to use. Our algorithm works as follows:
 
 \begin{enumerate}[label=\textbf{Step \arabic*:}]
   \item
@@ -447,7 +448,7 @@ The timbre of a sound comes from its harmonic content, i.e. what frequencies are
   \label{fig:saxpianoc}
 \end{figure}
 
-So, our timbre metric needs to capture the harmonic content of an audio signal. It is not just enough to quantify the spectrogram however, since if we did we would be capturing melodic content of the audio signal, i.e. which note is being played, which we want to leave for the chroma metric to capture instead. This means that we would need to normalise the spectrum such that the actual note being played does not matter.
+So, our timbre metric needs to capture the harmonic content of an audio signal. It is not just enough to quantify the spectrogram however, since if we did we would be capturing melodic content of the audio signal, i.e. which note is being played, which we want to leave for the chroma metric to capture instead. This means that we need to normalise the spectrum such that the actual note being played does not matter.
 
 We also only care about the timbre when a note is being played. For this reason, we only calculate our timbre metric at expected beat times. It should be noted that a note will not always occur on an expected beat, but we can assume that a note will occur on most expected beats.
 
@@ -457,10 +458,10 @@ Our metric calculator works as follows:
 
 \begin{enumerate}[label=\textbf{Step \arabic*:}]
   \item
-    For each beat time, take a window of the signal, we use a window size of 0.3 seconds.
+    For each beat time, take a window of the signal, we use a window size of 300 ms.
 
   \item
-    Calculate the spectrum of each window by taking its Fourier transform.
+    Calculate the spectrum of each window by taking its DFT.
 
   \item
     Find the note that is most likely being played, and shift the spectrum such that this matches a standard note (we use the note A at 440 Hz).
@@ -483,37 +484,38 @@ We first truncate each metric to the length of the shorter metric. Then, for eac
 
 For the purposes of evaluation, we also implement a number of transformations which can be applied to the data before being used in the system. In particular, we implement the addition of background noise as well as the addition of reverb.
 
-A user can specify a number of transformations to apply to evaluation data, as well as the order in which they are applied (since it does not make sense to apply reverb, and then add noise to a signal).
+A user can specify a number of transformations to apply to evaluation data, as well as the order in which they are applied (since it does not make sense to apply reverb and then add noise to a signal, in the real world the reverb would have to apply to the noise also).
 
 \subsection{Background Noise}
 
 This transformation is implemented in \texttt{src/classifier/transformations/noise.py}.
 
-Background noise is created through a microphone recording additional environmental sounds. The exact set of sources of noise will vary but some sources might include buzzing from electrical equipment, plumbing, speech, etc. This means that synthesising accurate noise is quite difficult. For example, white noise is unlikely to be representative of these sources and thus simply adding Gaussian white noise is unlikely to represent use of the system under data that has real background noise.
+Background noise is created through a microphone recording additional environmental sounds. The exact set of sources of noise will vary but some sources might include buzzing from electrical devices, speech, movement, etc. This means that synthesising accurate noise is quite difficult. For example, white noise is unlikely to be representative of these sources and thus simply adding Gaussian white noise is unlikely to represent use of the system under data that has real background noise.
 
 Instead of creating a complex system to synthesise background noise, that will inevitably be not completely alike to real background noise, we instead just take samples of background noise and add these samples to our performances.
 
 If we are using samples of background noise, then it is important to consider what happens when the length of our performance exceeds the length of the noise sample. A naive implementation might just repeat the noise sample immediately, but this could lead to artifacts where the amplitude immediately makes a large jump from the end of the signal to the start. One way to avoid these artifacts might be to reverse the noise and then append it to the end, but this might change the character of the noise in some way and make it unrealistic. The solution that we opt for is to have a small period at the end of the noise signal where we overlap another instance of the noise signal. We then cross-fade the two signals, so the volume of the first signal decreases to silence as the volume of the second signal increases from silence. This ensures that we avoid audio artifacts whilst keeping the character of the noise signal.
 
-We also allow for the user to specify the loudness of the noise overall.
+We also allow for the user to specify the loudness of the noise.
 
 
 \subsection{Reverb}
 
 This transformation is implemented in \texttt{src/classifier/transformations/reverb.py}.
 
-When a sound is played in a room, it will reflect, and be absorbed by, surfaces in the room. These reflections cause an echo-like effect to be heard, and as the sound waves are absorbed, the reverberation becomes diminish until they become inaudible. Figure \ref{fig:reverb} shows visually what reverb looks like, where the tail of a sound is significantly extended.
+When a sound is played in a room, it will reflect, and be absorbed by, surfaces in the room. These reflections cause an echo-like effect to be heard, and as the sound waves are absorbed, the reverberation  diminishes until it become inaudible. Figure \ref{fig:reverb} shows visually what reverb looks like, where the tail of a sound is significantly extended.
 
-\begin{figure}[h]\label{fig:reverb}
+\begin{figure}[h]
   \centering
   \includegraphics[scale=0.35]{reverb}
   \caption{Result of applying convolution reverb}
+  \label{fig:reverb}
 \end{figure}
 
 
 In music production, numerous techniques are used to simulate reverb. There are acoustic techniques like plate or spring reverb which involve passing the sound signal through a metal plate/spring and recording the results, but these acoustic techniques would be infeasible to implement for our application.
 
-A common digital technique is to generate many delayed versions of the signal, as echoes, and play them back. This allows for easy parametrisation and is quick to compute, but is not entirely realistic. The technique we opt for is a more realistic implementation of digital reverb, and uses convolution. We first require a digital recording of the impulse response of a room, which is generated by recording the audio in a room after an impulse, like the popping of a balloon or a clap. Then, we simply convolve this impulse response with our audio signal, which transfers the acoustic characteristics of the room to be transferred onto a performance. This is significantly more computationally expensive than the other digital reverb technique mentioned, but we are not concerned with performance, and instead care much more about the realism of the reverb effect.
+A common digital technique is to generate many delayed versions of the signal, as echoes, and play them back. This allows for easy parametrisation and is quick to compute, but is not entirely realistic. The technique we opt for is a more realistic implementation of digital reverb, and uses convolution. We first require a digital recording of the impulse response (IR) of a room, which is generated by recording the audio in a room after an impulse, like the popping of a balloon or a clap. Then, we simply convolve this impulse response with our audio signal, which transfers the acoustic characteristics of the room to be transferred onto a performance. This is significantly more computationally expensive than the other digital reverb technique mentioned, but we are not concerned with performance, and instead care much more about the realism of the reverb effect.
 
 \section{Summary}
 
@@ -530,8 +532,7 @@ In this chapter, we have explored the structure of the software implemented, and
 
 
 % THINGS TO REMEMBER:
-%todo: write about no tests
-% play two Cs an octave apart for chroma vector extraction section
+%TODO play two Cs an octave apart for chroma vector extraction section
 
 
 

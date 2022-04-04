@@ -48,7 +48,7 @@ In total, the project implements five metrics:
   \item
     Dynamics over time:
 
-    This metric tracks how the tempo, the loudness of a performance, changes over the performance of a piece. Figure \ref{figure:dynamicsplot} visualises this metric by plotting this metric against the audio signal.
+    This metric tracks how the dynamics, the loudness of a performance, changes over the performance of a piece. Figure \ref{figure:dynamicsplot} visualises this metric by plotting this metric against the audio signal.
 
 \begin{minipage}{\textwidth}
   \centering
@@ -60,7 +60,7 @@ In total, the project implements five metrics:
   \item
     Chroma vector extraction:
 
-    This metric tries to track what notes are being played at a given time, by observing the power in frequency bands corresponding to each note. Figure \ref{figure:chromaplot} visualises this metric by plotting the frequency content for each note over time
+    This metric tries to track what notes are being played at a given time, by observing the power in the frequency bands corresponding to each note. Figure \ref{figure:chromaplot} visualises this metric by plotting the chroma vectors of a performance over time.
 
     \begin{minipage}{\textwidth}
       \centering
@@ -72,7 +72,7 @@ In total, the project implements five metrics:
   \item
     Note offsets:
 
-    This metric tries to track micro-timing differences in the performance of a piece by comparing the actual note onsets to the expected note onset. Figure \ref{figure:offsetsplot} visualises this by plotting expected note onsets and actual note onsets.
+    This metric tries to track micro-timing differences in the performance of a piece by comparing the actual note onsets to the expected note onset and building a probability distribution based off of these observations. Figure \ref{figure:offsetsplot} visualises this by plotting expected note onsets and actual note onsets.
 
 \begin{minipage}{\textwidth}
   \centering
@@ -92,16 +92,16 @@ In total, the project implements five metrics:
 
 
 
-An explanation of how we compute each of these metrics, and what form they take is given in Chapter \ref{chapter:implementation}
+An explanation of how we compute each of these metrics, and what form they take is given in Chapter \ref{chapter:implementation}.
 
-The project explores which of these metrics are most useful, and quantifies the usefulness of each metric, and looks at how the metrics perform under different conditions (e.g. addition of white noise).
+The project explores which of these metrics are most useful, and quantifies the usefulness of each metric, and looks at how the metrics perform under different conditions (e.g. the addition of background noise).
 
 
 \section{Related work}
 
 There is some relevant work already done that is adjacent to this topic, for example there is a paper that investigates how individual a pianist's performance is, exploring many different metrics \cite{bernays14}, but this paper uses a symbolic representation of the performances with MIDI, as opposed to audio of the performance itself.
 
-There is no similar work that operates on audio signals as far as I am aware, but there is some work that uses raw audio signals of a sung password using the timbre of the voice as biometric authentication \cite{prakash16}, which whilst not the same as the work in this project, is relevant.
+There is no similar work that operates on audio signals as far as I am aware, but there is some work that uses raw audio signals of a sung password using the timbre of the voice as biometric authentication \cite{prakash16}, which whilst not the same as the work in this project, is somewhat relevant.
 
 Furthermore, there is plenty of research on beat tracking, in particular we use the techniques by Ellis \cite{ellis07}, which are a vital component of our project.
 

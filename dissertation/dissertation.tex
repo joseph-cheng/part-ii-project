@@ -4,6 +4,8 @@
 \usepackage{import}
 \usepackage{pdfpages}
 \usepackage{dissertationstyle}
+\graphicspath{ {./images/} }
+
 
 \bibliography{personal}
 
@@ -65,9 +67,35 @@
 
 \printbibliography
 
-\chapter*{Appendix}
+\appendix
 
-%% TODO
+\chapter{Appendix A -- Piano Scores}\label{chapter:appendix a}
+
+Excerpts of piano scores that each performer was given are shown below.
+
+\begin{minipage}{\textwidth}
+  \centering
+  \includegraphics[scale=0.5]{largo}
+  \captionof{figure}{Handel - Largo (from Xerxes)}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+  \centering
+  \includegraphics[scale=0.5]{sweden}
+  \captionof{figure}{C418 - Sweden (transcribed by Torby Brand)}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+  \centering
+  \includegraphics[scale=0.5]{prelude}
+  \captionof{figure}{Bach - Prelude in C Major}
+\end{minipage}
+
+\begin{minipage}{\textwidth}
+  \centering
+  \includegraphics[scale=0.5]{moonlight_sonata}
+  \captionof{figure}{Beethoven - Moonlight Sonata (1st Movement) }
+\end{minipage}
 
 \includepdf[pages=-]{proposal/proposal.pdf}
 

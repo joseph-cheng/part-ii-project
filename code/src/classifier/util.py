@@ -19,7 +19,7 @@ def read_audio(wavfile_path):
 
 def moving_average(data, n):
     """
-    Calculates the moving average of an array of data. Implementation taken from https://stackoverflow.com/questions/14313510/how-to-calculate-rolling-moving-average-using-python-numpy-scipy
+    Calculates the moving average of an array of data.
 
     data: a NP array to take the average over
     n: size of window to take average over

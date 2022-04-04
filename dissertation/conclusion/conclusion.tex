@@ -12,6 +12,34 @@
 \fi
 \resetfigpath{conclusion}
 
+
+In this chapter, I reflect on the project: its successes, shortcomings, what I could have done differently in hindsight, and any potential for future work.
+
+\section{Project Successes}
+
+Overall, the project was a success, meeting all of its core requirements. I was unable to meet any extension criteria, but I am very pleased with the achievements of the core requirements.
+
+I designed and implemented 5 metric calculators and corresponding similarity scorers that were able to successfully distinguish between piano performers of the same piece, given just the audio of a piece and no symbolic representation, something missing from the current literature. I also implemented a number of transformations that could be applied to input data to make it more similar to data that we might expect in the real world, and the system was able to cope with these transformations well.
+
+I also implemented a data synthesis module that was able to take a MusicXML score, convert it into a useful format for synthesising audio, and then synthesise audio from it, adding variation that we might expect in a human player. 
+
+\section{Project Shortcomings and Lessons Learned}
+
+The project had a few shortcomings, such as the failure of the timbre extraction metric. In hindsight, I could have seen that this metric was not even worth investigating, given the nature of how sound is generated from a piano, since there is not much room for timbral variation.
+
+The system was also susceptible to issues if performances had periods of not playing at the start or end, which means that this system could be difficult to use on huge datasets, since each performance would have to be edited beforehand.
+
+If I would have started the project again, I would have gathered more data. Having 32 performances was enough to perform a good evaluation, but it become hard to show statistical significance, even when success seemed to differ by a reasonable amount. Whether it be gathering more performers or preparing more pieces for them to play, any extension to the data set would have been very useful for evaluation.
+
+Completing this project has also taught me about project management, particularly the importance of staying to a schedule which has allowed me to complete the project to a standard which I am proud of with plenty of time to reflect.
+
+\section{Future Work}
+
+There is lots of room for future work on this project, given that the idea behind it is relatively unstudied in the literature. For example, there is a huge design space for more metric calculators and transformations. There is also the possibility to redesign some of the metrics to make them stand up to the transformations better, for example by somehow automatically truncating reverb tails to avoid the effect observed in Section \ref{sec:reverb issues}.
+
+There is also room to evaluate the system on instruments other than the piano, such as those that allow for more timbral variation like the violin, or even identifying groups of performers playing at the same time. It is likely that this would require further DSP and MIR techniques to handle the intricacies of sounds produced by different instruments, and may involve cutting-edge techniques in automated stem separation \cite{Hennequin2020}.
+
+
 \ifstandalone
   \printbibliography
 \fi

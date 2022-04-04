@@ -38,7 +38,7 @@ class UniqueReverb(transformation.Transformation):
             # we normalise  to max 1.0 here to avoid clipping
             scipy.io.wavfile.write(out, sample_rate, convolved/max(convolved))
 
-        return audio.Audio(convolved, sample_rate)
+        return audio.Audio(convolved, sample_rate, name=audio_obj.name)
 
     def __repr__(self):
         return f"Reverb | IRs : {self.ir_paths}"
