@@ -151,7 +151,7 @@ Interestingly, combining all 5 metrics only resulted in a success of 0.69 (2 s.f
 
 By investigating further, we find that only the chroma metric received an increase in success when combined with the tempo metric (increasing from 0.50 to 0.59 (2 s.f.)), whereas all other metrics (ignoring timbre) took a decrease in success of 28\% and 10\% for dynamics and note offsets respectively. So, even though there is some affinity between the chroma and tempo metrics, this is not enough to outweigh the antagonism between the tempo metric and the dynamics and note offsets metrics, resulting in a decrease in performance when we use all 5 metrics.
 
-\subsection{Performance under Transformations}
+\subsection{Performance Under Transformations}
 
 The performance of the metrics under noise and reverb transformations is somewhat interesting. In Table \ref{table:transformation results}, we give the success for each individual metric under each combination of transformations, including no transformations (we provide this just for completeness, it is just the same data we store in Table \ref{table:metric results}).
 
@@ -195,7 +195,7 @@ As we can see, introduction of transformations causes some performances to have 
 
 When looking into the performance of metric combinations, we see that the noise transformation actually results in a better peak success: 0.81 (2 s.f.) with the same best metric combinations for no transformations. When adding the reverb transformation, our peak success decreases, only being able to attain a peak success of 0.69 (2 s.f.), which is no better than the success obtained by the note offsets metrics on its own. Interestingly, we can see that the chroma metric took a large performance hit, and none of the best metric combinations include the chroma metric. Finally, applying noise and then reverb allows us to attain a peak success of 0.75 (2 s.f.) with numerous metric combinations, but none including the chroma metric.
 
-\subsection{Digging a Bit Deeper}
+\subsection{Digging a bit Deeper}
 
 In this section, we explore the behaviour of these result further, looking at how the system changes upon varying these transformations, and some underlying causes within the system that cause this behaviour.
 
@@ -206,8 +206,8 @@ The results for noise seem counter-intuitive, since we seem to be gaining perfor
 \begin{figure}[h]
     \captionsetup{justification=centering}
     \centering
-    \includegraphics[scale=0.3]{noiseplot}
-    \caption{Best and worst metric performance against noise amplitude (confidence intervals are not given due to the algorithm being deterministic)}
+    \includegraphics[scale=0.3]{noiseplot3}
+    \caption{Best and worst metric performance against noise amplitude (error bars created by recording similar noise)}
     \label{fig:noiseplot}
 \end{figure}
 
