@@ -9,12 +9,10 @@ import transformations.noise as noise
 import transformations.reverb as reverb
 import transformations.unique_reverb as unique_reverb
 
-"""
 TRANSFORMS = [
         noise.Noise("../../res/noise/room.wav", level=1.0),
         reverb.Reverb("../../res/irs/studio.wav")
 ]
-"""
 
 
 data_dir = "../../res/data"
@@ -148,8 +146,10 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 
 
 if __name__ == "__main__":
+    """
     # need to cast to list because we consume the generator in making metric_results
     transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
+    transform_combinations = [()]
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
 
     for transform_combination in transform_combinations:
@@ -158,33 +158,41 @@ if __name__ == "__main__":
             metric_results[transform_combination][metric_combination] = evaluate_metrics(data_dir, metric_combination, transforms=transform_combination)
 
     print(metric_results)
-
     """
+
+    # for generating noise level testing
     plt.rcParams.update({'font.size': 30})
 
-    noise_levels = np.linspace(0.0, 40.0, 21)
-    peak_scores = []
-    lowest_scores = []
-    for noise_level in noise_levels:
-        noise_transform = noise.Noise("../../res/noise/room.wav", level=noise_level)
-        metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
-        peak_score = 0
-        lowest_score = 1
-        for metric_combination in metric_combinations:
-            score = evaluate_metrics(data_dir, metric_combination, transforms=[noise_transform])
-            peak_score = max(peak_score, score)
-            lowest_score = min(lowest_score, score)
+    noise_files = [
+            "../../res/noise/room.wav",
+            "../../res/noise/room2.wav",
+            "../../res/noise/room3.wav",
+            ]
 
-        peak_scores.append(peak_score)
-        lowest_scores.append(lowest_score)
+    noise_levels = np.linspace(0.0, 20.0, 11)
+    peak_scores = [[] for _ in range(len(noise_levels))]
+    lowest_scores = [[] for _ in range(len(noise_levels))]
+    for i, noise_level in enumerate(noise_levels):
+        for noise_file in noise_files:
+            noise_transform = noise.Noise(noise_file, level=noise_level)
+            metric_combinations = itertools.chain.from_iterable(itertools.combinations(metric_calculator.METRICS, i) for i in range(1, len(metric_calculator.METRICS)+1))
+            peak_score = 0
+            lowest_score = 1
+            for metric_combination in metric_combinations:
+                score = evaluate_metrics(data_dir, metric_combination, transforms=[noise_transform])
+                peak_score = max(peak_score, score)
+                lowest_score = min(lowest_score, score)
+
+            peak_scores[i].append(peak_score)
+            lowest_scores[i].append(lowest_score)
 
     plt.title("Highest/lowest success vs. noise level")
     plt.ylim([0, 1])
-    plt.xlim([0, 40.0])
-    plt.plot(noise_levels, peak_scores, linewidth=4, label="Highest success")
-    plt.plot(noise_levels, lowest_scores, linewidth=4, label="Lowest success")
+    plt.xlim([0, 20.0])
+    plt.errorbar(noise_levels, np.median(peak_scores, axis=1), yerr=np.std(peak_scores, axis=1), linewidth=4, label="Highest success")
+    plt.errorbar(noise_levels, np.median(lowest_scores, axis=1), yerr=np.std(lowest_scores, axis=1), linewidth=4, label="Lowest success")
+    plt.legend()
     plt.show()
-    """
 
 
 

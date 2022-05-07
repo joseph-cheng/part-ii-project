@@ -91,23 +91,31 @@ A high-level overview of the repository is given in Figure \ref{fig:repositoryov
 |-- res/
 |   |-- data/
 |   |   contains all of the piano recordings
+|   |     discussed in section 2.4
 |   |-- irs/
 |   |   contains samples of impulse responses for reverb
+|   |     discussed in section 3.5.2
 |   |-- noise/
 |   |   contains samples of background noise
+|   |     discussed in section 3.5.1
 |   |-- scores/
 |   |   contains MusicXML scores
+|   |     discussed in section 3.3
 |   `-- soundfonts/
 |       contains soundfonts for data synthesis
+|         discussed in scetion 3.3
 `-- src/
     |-- classifier/
     |   |   contains a variety of utility files
     |   |-- metrics/
     |   |   contains metric calculators and similarity scorers
+    |   |     discussed in section 3.4
     |   `-- transformations/
     |       contains transformation implementations
+    |         dicussed in section 3.5
     `-- data_synthesis/
         contains all of the data synthesis implementation
+          discussed in section 3.3
 \end{verbatim}
 \caption{Repository overview}
 \label{fig:repositoryoverview}
@@ -117,9 +125,7 @@ Noticeably, unit tests are missing from the repository. This was by choice, howe
 
 All of the code was written by the dissertation author. All files in the \texttt{res/data/} directory were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
 
-Files in the \texttt{irs/} directory were taken from the University of York's \href{https://www.openairlib.net}{OpenAir} project under the Creative Commons 4.0 License\footnote{\url{https://creativecommons.org/licenses/by/4.0/}}.
-
-All other data files were taken using the Creative Commons 1.0 license.
+In particular, files in the \texttt{res/irs/} directory were taken from the University of York's \href{https://www.openairlib.net}{OpenAir} project under the Creative Commons 4.0 License\footnote{\url{https://creativecommons.org/licenses/by/4.0/}}. Files in the \texttt{res/noise/}, \texttt{res/scores/}, and \texttt{res/soundfonts/} directories were taken using the Creative Commons 1.0 license.
 
 \section{Data Synthesis}\label{sec:datasynthesis}
 
@@ -127,7 +133,43 @@ In this section we discuss the implementation of the data synthesis module creat
 
 \subsection{MusicXML Parser}
 
-MusicXML is a file format designed to store music scores for computer-readability \cite{musicxml}. It specifies a number of XML tags and their usage relating to musical structure.
+MusicXML is a file format designed to store music scores for computer-readability \cite{musicxml}. It specifies a number of XML tags and their usage relating to musical structure. Figure \ref{fig:musicxml} gives some example MusicXML representing 3 equal length notes of G\musSharp{}3, C\musSharp{}4, and E4.
+
+\begin{figure}[h]
+\begin{verbatim}
+<note>
+  <pitch>
+    <step>G</step>
+    <alter>1</alter>
+    <octave>3</octave>
+  </pitch>
+  <duration>80</duration>
+  <voice>1</voice>
+  </note>
+
+<note>
+  <pitch>
+    <step>C</step>
+    <alter>1</alter>
+    <octave>4</octave>
+  </pitch>
+  <duration>80</duration>
+  <voice>1</voice>
+</note>
+
+<note>
+  <pitch>
+    <step>E</step>
+    <octave>4</octave>
+  </pitch>
+  <duration>80</duration>
+
+  <voice>1</voice>
+</note>
+\end{verbatim}
+\caption{Example MusicXML}
+\label{fig:musicxml}
+\end{figure}
 
 The parser simply needs to understand each of these tags, and convert the XML into a format that is usable for audio generation. The format we want to turn the MusicXML into is essentially a list of \texttt{Note} objects (defined in \texttt{src/data\_synthesis/piece.py}), where each \texttt{Note} specifies a pitch, start time, and duration. From this, we can easily generate audio.
 
@@ -135,7 +177,8 @@ The parser is simple and linear, we never need to do any backtracking. We consum
 
 The \texttt{<note>} tag does not specify a start time, it is instead implied by the durations of all previous notes. This means that in order to have multiple notes play at the same time, we need the concept of voices. Each voice progresses in time independently, and each \texttt{<note>} specifies a voice, so we simply keep track of all of the voices progress to find the start and end time for each note.
 
-In music, tied notes are notes of the same pitch that occur adjacently, along with a tie marking. Tied notes are played as if they were a single note, with the duration of all of the tied notes combined. In MusicXML, tied notes generate multiple \texttt{<note>} tags, so we should not always generate a new note to play when we see a \texttt{<note>} tag. We have to keep track of whether or not the previous note in our voice was tied, and if it was then we simply extend the duration of the previous note.
+
+In music, tied notes are notes of the same pitch that occur adjacently, along with a tie marking. Tied notes are played as if they were a single note, with the duration of all of the tied notes combined. In MusicXML, tied notes generate multiple \texttt{<note>} tags, so we should not always generate a new note to play when we see a \texttt{<note>} tag. We have to keep track of whether the previous note in our voice was tied, and if it was then we simply extend the duration of the previous note.
 
 Figure \ref{fig:tied notes} shows two untied notes and one tied note. In MusicXML, both of these would be represented with two distinct \texttt{<note>} tags, even though the tied note is essentially equivalent to a single note.
 
@@ -177,8 +220,42 @@ Then, as designed, our \texttt{Piece} class makes it very easily to generate not
 
 In this section we detail and justify the specific algorithms used for each of the metric calculators.
 
-The structure of this implementation is designed around modularity: it should be easy to create new metric calculators and have them evaluated. For this, we want each metric calculator to implement a function that calculates a metric given some audio, and a function that calculates the similarity between two metrics. To do this, we define a class \texttt{MetricCalculator} in \texttt{src/classifier/metrics/metric.py} with three functions: \texttt{\_\_init\_\_()} (a constructor), \texttt{calculate\_metric(audio)}, and \texttt{calculate\_similarity(audio1, audio2, metric1, metric2)}. Python3 does not support abstract/virtual methods, so for the \texttt{MetricCalculator} class we instead define each of these functions to raise a \texttt{NotImplementedError} on call, forcing all classes that inherit from it to override these methods.
+The structure of this implementation is designed around modularity: it should be easy to create new metric calculators and have them evaluated. For this, we want each metric calculator to implement a function that calculates a metric given some audio, and a function that calculates the similarity between two metrics. To do this, we define a class \texttt{MetricCalculator} in \texttt{src/classifier/metrics/metric.py} with three functions: \texttt{\_\_init\_\_()} (a constructor), \texttt{calculate\_metric(audio)}, and \texttt{calculate\_similarity(audio1, audio2, metric1, metric2)}. Python3 does not support abstract/virtual methods, so for the \texttt{MetricCalculator} class we instead define each of these functions to raise a \texttt{NotImplementedError} on call, forcing all classes that inherit from it to override these methods. A UML diagram for the metric calculators is shown in Figure \ref{fig:metric calculators uml}
 
+
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{interface}[text width=10cm]{MetricCalculator}{0,0}
+      \operation[0]{\_\_init\_\_()}
+      \operation[0]{calculate\_metric(audio)}
+      \operation[0]{calculate\_similarity(audio1, audio2, metric1, metric2)}
+    \end{interface}
+
+    \begin{class}{TempoCalculator}{-6,-5}
+      \implement{MetricCalculator}
+    \end{class}
+
+    \begin{class}{DynamicsCalculator}{-3,-6}
+      \implement{MetricCalculator}
+    \end{class}
+
+    \begin{class}{ChromaCalculator}{0,-7}
+      \implement{MetricCalculator}
+    \end{class}
+
+    \begin{class}{OffsetsCalculator}{3,-6}
+      \implement{MetricCalculator}
+    \end{class}
+
+    \begin{class}{TimbreCalculator}{6,-5}
+      \implement{MetricCalculator}
+    \end{class}
+  \end{tikzpicture}
+
+  \caption{UML diagram for metric calculators}
+  \label{fig:metric calculators uml}
+\end{figure}
 
 \begin{itemize}
   \item
@@ -209,9 +286,9 @@ The computation of this metric builds closely on top of the beat tracking algori
   \label{fig:spectrogrambeats}
 \end{figure}
 
-In fact, all we do is run our beat tracking algorithm on our audio and take the first-order difference between our beat times, and then apply smoothing by taking the moving average to reduce the impact of micro-variations in note timings (which we instead capture with the note offsets metric). 
+In fact, all we do is run our beat tracking algorithm on our audio and take the first-order and second-order differences between our beat times, and then apply smoothing to each by taking the moving average to reduce the impact of micro-variations in note timings (which we instead capture with the note offsets metric). Since the note offsets metric (and other metrics) require the onset function, we also memoise this computation for performance.
 
-There were a few other choices for constructing this metric, for example instead of taking the first-order difference of our beat times, we could simply use the beat times themselves. To see the issues with this approach, suppose we have two performances that have very similar tempos in the latter half, but are different in the first half. We would like to consider these performances reasonably similar since the tempos are similar in the latter half, but by taking the absolute beat times we are unable to find any similarity since the differing tempos in the first half will offset the beat times in the latter half. Taking the first-order difference avoids this issue. Another option might be taking higher-order differences, which seems like it might have some merits. For example, a second-order difference would allow us to easily find where a piece is speeding up/slowing down as opposed to just fast/slow, but by doing this we lose the information on whether the piece actually is being played fast/slow, which isn't ideal.
+There were a few other choices for constructing this metric, for example instead of taking the first-order difference of our beat times, we could simply use the beat times themselves. To see the issues with this approach, suppose we have two performances that have very similar tempos in the latter half, but are different in the first half. We would like to consider these performances reasonably similar since the tempos are similar in the latter half, but by taking the absolute beat times we are unable to find any similarity since the differing tempos in the first half will offset the beat times in the latter half. Taking the first-order difference avoids this issue. Another option might be taking higher-order differences, although third-order differences and higher are generally not useful as performers are unlikely to think about such notions in their tempo.
 
 Furthermore, the smoothing we perform is important. Being able to avoid these micro-variations is useful, since this metric really intends to capture an overall view of how tempo changes over the performance of the piece, and not a microscopic view of timings within each bar, for example.
 
@@ -239,7 +316,7 @@ Our tempo variation over time metric is then calculated as follows, which includ
 
 To calculate the similarity between two tempo metrics we use a technique which we will frequently see in the similarity scorers for other metrics: calculating the mean squared error. We can consider our tempo metric as being a function of beat number, returning us the time difference between the previous beat and the current beat. Then, to calculate the similarity between two metrics, we just take the mean squared error between these two functions (truncating the longer function if necessary), giving us a number we call $\varepsilon$.
 
-This is not yet useful as a similarity score, however, since it can grow unboundedly large, so we return the error as $e^{-\varepsilon}$. The intuition behind the choice of this transformation is that if our two performances are the same, we expect $\varepsilon$ to be equal to 0, and thus $e^{-\varepsilon}$ will be 1. As $\varepsilon$ grows, $e^{-\varepsilon}$ will approach 0, which gives us a useful similarity score.
+This is not yet useful as a similarity score, however, since it can grow unboundedly large, so we return the error as $e^{-\varepsilon}$. The intuition behind the choice of this transformation is that if our two performances are the same, we expect $\varepsilon$ to be equal to 0, and thus $e^{-\varepsilon}$ will be 1. As $\varepsilon$ grows, $e^{-\varepsilon}$ will approach 0, which gives us a useful similarity score. Any function that has these properties would be a suitable transformation, so we would not expect better performance by choosing a different function with these properties.
 
 \subsection{Dynamics Over Time}
 
@@ -257,10 +334,10 @@ Given that, as we have seen the amplitude of the signal roughly corresponds to i
     We have too much granularity, which means that noise in our signal might cause more significant performance drops.
 
   \item
-    There is a huge range of magnitudes in the amplitudes of our signal
+    There is a huge range of magnitudes in the amplitudes of our signal.
 
   \item
-    Humans perceive different frequencies at different volumes, even for the same intensity.
+    Humans perceive different frequencies at different volumes, even for the same intensity. This is important because we want to suppress what is recorded but not heard, for example if the piano has defects that cause it to generate loud, low frequencies on some notes.
 \end{enumerate}
 
 To solve problem 1, we can simply perform some operation like taking the absolute value, or squaring, to ensure the value is always positive. To solve problem 2, we can take a sliding window over our signal and compute our loudness value over this signal excerpt, as opposed to a single point. To solve problem 3, we can take the log of our loudness value. Finally, to solve problem 4, we can apply some weightings to different frequencies.
@@ -302,7 +379,7 @@ Furthermore, the choice of frequency weighting also requires consideration. We c
 
 The similarity scorer for the dynamics metric uses similar techniques as the other metrics, which are described in Section \ref{sec:temposimilarity}.
 
-As before, we begin by truncating the longer metric if necessary. Then, we perform a step of normalisation: we only care about relative difference between the two metrics, so we normalise both arrays such that the value of 1 represents the highest value found in both metrics.
+As before, we begin by truncating the longer metric if necessary. Then, we perform a step of normalisation: we only care about relative difference between the two metrics, so we normalise both arrays such that the value of 1 represents the highest value found in either metric.
 
 Finally, as before, we calculate the mean squared error between these normalised arrays, and apply the negative exponential function to generate our similarity score.
 
@@ -362,7 +439,7 @@ There are some downsides to this approach. For example, if a note is held for a 
 
 This metric is implemented in the \texttt{src/classifier/metrics/offsets.py} file.
 
-This metric tries to capture micro-variations in rhythm from a performer, in some sense how `accurate' their playing of notes is. Unlike the other metrics that generate some kind of function/curve from the audio signal, this metric instead works by modelling the performer's micro-variations as a probability distribution, and we just return the parameters of this probability distribution.
+This metric tries to capture micro-variations in note timings of a performer, in some sense how `accurate' their playing of notes is. Unlike the other metrics that generate some kind of function/curve from the audio signal, this metric instead works by modelling the performer's micro-variations as a probability distribution, and we just return the parameters of this probability distribution.
 
 We do this because it is unlikely a performer would reliably have the same micro-variations at each note that is played. This means that if we were to, for example, store for each beat the time difference (offset) between the beat and when the performer actually played the note, and then for our similarity scorer calculated the mean squared error between each beat's offset, we would be unlikely to obtain high performance.
 
@@ -424,7 +501,7 @@ From this, we can derive an expression for $\frac{D_{KL}(M_1 || M_2) - D_{KL}(M_
   \frac{D_{KL}(M_1 || M_2) - D_{KL}(M_2||M_1)}{2} = \frac{\sigma_1^4 + \sigma_2^4 + (\sigma_1^2 + \sigma_2^2)(\mu_1 - \mu_2)^2}{4\sigma_1^2\sigma_2^2} - \frac{1}{2}
 \end{equation}
 
-We can see that if $\sigma_1 = \sigma_2$ and $\mu_1 = \mu_2$, that this symmetrised divergence becomes 0, and as as the parameters begin to differ, the divergence will get larger. This means that we can calculate our final similarity score as the negative exponential of our symmetrised divergence, which will be 1 when the distributions are the same, and approach 0 as the distributions differ.
+We can see that if $\sigma_1 = \sigma_2$ and $\mu_1 = \mu_2$, that this symmetrised divergence becomes 0, and as the parameters begin to differ, the divergence will get larger. This means that we can calculate our final similarity score as the negative exponential of our symmetrised divergence, which will be 1 when the distributions are the same, and approach 0 as the distributions differ.
 
 \subsection{Timbre extraction}\label{sec:timbre metric}
 
@@ -452,7 +529,7 @@ So, our timbre metric needs to capture the harmonic content of an audio signal. 
 
 We also only care about the timbre when a note is being played. For this reason, we only calculate our timbre metric at expected beat times. It should be noted that a note will not always occur on an expected beat, but we can assume that a note will occur on most expected beats.
 
-To quantify the spectrum of a signal, we use a standard technique of generating mel-frequency cepstrum coefficients (MFCCs), which is often used for applications like speech recognition and music genre classification. A cepstrum is obtained by first taking the log of the magnitudes in a spectrum, and then taking its inverse Fourier transform. A mel-frequency cepstrum works simply by instead using a power spectrum (like a frequency spectrum, but we square the magnitudes), and then converting the spectrum to use the mel scale first. The MFCCs are then just the magnitudes of the inverse Fourier transformed signal.
+To quantify the spectrum of a signal, we use a standard technique\cite{prakash16} of generating mel-frequency cepstrum coefficients (MFCCs), which is often used for applications like speech recognition and music genre classification. A cepstrum is obtained by first taking the log of the magnitudes in a spectrum, and then taking its inverse Fourier transform. A mel-frequency cepstrum works simply by instead using a power spectrum (like a frequency spectrum, but we square the magnitudes), with the frequency scale in mels. The MFCCs are then just the magnitudes of the inverse Fourier transformed signal.
 
 Our metric calculator works as follows:
 
@@ -492,7 +569,7 @@ This transformation is implemented in \texttt{src/classifier/transformations/noi
 
 Background noise is created through a microphone recording additional environmental sounds. The exact set of sources of noise will vary but some sources might include buzzing from electrical devices, speech, movement, etc. This means that synthesising accurate noise is quite difficult. For example, white noise is unlikely to be representative of these sources and thus simply adding Gaussian white noise is unlikely to represent use of the system under data that has real background noise.
 
-Instead of creating a complex system to synthesise background noise, that will inevitably be not completely alike to real background noise, we instead just take samples of background noise and add these samples to our performances.
+Instead of creating a complex system to synthesise background noise, that will inevitably be not completely alike to real background noise, we instead just take pre-recorded samples of background noise and add these samples to our performances.
 
 If we are using samples of background noise, then it is important to consider what happens when the length of our performance exceeds the length of the noise sample. A naive implementation might just repeat the noise sample immediately, but this could lead to artifacts where the amplitude immediately makes a large jump from the end of the signal to the start. One way to avoid these artifacts might be to reverse the noise and then append it to the end, but this might change the character of the noise in some way and make it unrealistic. The solution that we opt for is to have a small period at the end of the noise signal where we overlap another instance of the noise signal. We then cross-fade the two signals, so the volume of the first signal decreases to silence as the volume of the second signal increases from silence. This ensures that we avoid audio artifacts whilst keeping the character of the noise signal.
 

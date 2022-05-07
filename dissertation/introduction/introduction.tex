@@ -19,16 +19,16 @@ This chapter explains the motivation for this project, provides an overview of t
 
 Individuals have many characteristics that can be used to identify them, ranging from immutable characteristics of a person like biometrics, to qualities of an action they perform, such as their handwriting. This project explores the use of another characteristic that can be used to identify a person: how they play a particular piece on the piano. 
 
-Suppose a famous pianist dies, and a number of demo recordings of their pieces are found that could be worth a lot of money. With the pianist dead, it is hard to determine the authenticity of these recordings, and the ability to identify the performer of these recordings would be very useful in order to properly assess the value of the recordings. Another example use case might be in court: if a pianist wants to provide an alibi of some audio recording taken at the time they are accused of committing a crime, then such a tool that is able to verify the integrity of this alibi by providing a quantitative statement of how similar the audio recording is to their actual playing would be very useful to provide to a jury, especially if the jury has no musical experience.
+Suppose a famous pianist dies, and a number of demo recordings of their pieces are found that could be worth a lot of money. With the pianist unavailable to corroborate themselves, it is hard to determine the authenticity of these recordings, and the ability to identify the performer of these recordings would be very useful in order to properly assess the value of the recordings. Another example use case might be in court: if a pianist wants to provide an alibi of some audio recording taken at the time they are accused of committing a crime, then such a tool that is able to verify the integrity of this alibi by providing a quantitative statement of how similar the audio recording is to their actual playing would be very useful to provide to a jury, especially if the jury has no musical experience.
 
 \section{Project Mechanism and Overview}
 
-In order to pull useful information out of an audio recording related to a pianist's performance, we need to process the signal in some meaningful way to gather musical information from it. For example, the discrete-time Fourier transform (DTFT) is used to transform a discrete-time audio signal into its frequency data. This technique is invaluable and has a myriad of uses, for example being able to get data about what notes are being played at a given time, or to attempt to quantify the timbre of a particular sound.
+In order to extract semantic information from audio recording related to a pianist's performance, we need to process the signal in some meaningful way to gather musical information from it. For example, the discrete-time Fourier transform (DTFT) is used to transform a discrete-time audio signal into its frequency data. This technique is invaluable and has a myriad of uses, for example being able to get data about what notes are being played at a given time, or to attempt to quantify the timbre of a particular sound.
 
 
 
 
-The system created in this project works as follows: given performances of the same piece by different pianists, we compute a number of metrics for each performance and store them. To try and determine the performer of a performance with an unknown performer, we compute the same metrics on this performance, and then compute similarities between the metrics of this performance and the metrics of the other performances, and choose the performer for which we get the highest aggregate similarity.
+The system created in this project works as follows: given performances of the same piece by different pianists, we compute a number of metrics for each performance and store them. Given a performance with an unknown performer, we compute its metrics, and then compute similarities between metrics of the unknown performance, and metrics of the stored performances. Then, we choose the performer for which we get the highest aggregate similarity.
 
 In total, the project implements five metrics:
 
@@ -36,7 +36,7 @@ In total, the project implements five metrics:
   \item
     Tempo variation over time:
 
-    This metric tracks how the tempo, how fast or slow the piece is being played, changes over the performance of a piece. Figure \ref{figure:tempoplot} visualises this metric by plotting the distance of note onsets from the expected note onset if the piece were played at a fixed tempo.
+    This metric tracks how the tempo, how fast or slow the piece is being played, changes over the performance of a piece. Figure \ref{figure:tempoplot} visualises this metric by plotting the distance of note onsets from the expected note onset if the piece were played at a fixed tempo. In this particular example, we see the performer begins slightly delayed, speeds up at around the 10 second mark, and speeds up even more at around the 16 second mark.
 
 % TODO: change all these plots to remove ticks, apart from maybe the tempo y-ticks
 \begin{minipage}{\textwidth}
@@ -72,7 +72,7 @@ In total, the project implements five metrics:
   \item
     Note offsets:
 
-    This metric tries to track micro-timing differences in the performance of a piece by comparing the actual note onsets to the expected note onset and building a probability distribution based off of these observations. Figure \ref{figure:offsetsplot} visualises this by plotting expected note onsets and actual note onsets.
+    This metric tries to track micro-timing differences in the performance of a piece by comparing the actual note onsets to the expected note onset and building a probability distribution calculated from these observations. Figure \ref{figure:offsetsplot} visualises this by plotting expected note onsets and actual note onsets. In this particular example, we see that the performer tends to play just slightly before the expected note onsets.
 
 \begin{minipage}{\textwidth}
   \centering

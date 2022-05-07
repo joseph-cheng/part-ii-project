@@ -30,7 +30,7 @@ Firstly, we establish that the music theory we discuss pertains to a specific st
 
 Within music (and especially the piano), we consider pitch to be distinct, as opposed to continuous like it is on the frequency spectrum. Each of these discrete pitches is referred to as a note, and the distance between successive notes is called a semitone.
 
-The frequency ratio between successive notes is always the same, and chosen such that that the frequency of a note is half the frequency of the note 12 semitones higher. This means that we group notes into octave groups, each containing 12 notes. Each of these notes has a name: C, C\musSharp{}, D, D\musSharp{}, E, F, F\musSharp{}, G, G\musSharp{}, A, A\musSharp{}, and B (from lowest to highest). This means that we can uniquely identify a note with its name and octave number. The lowest note possible on a piano is A0 (with a frequency of about 28 Hz), and the highest is C8 (with a frequency of about 4200 Hz). It is important to note that notes that only differ by octave (e.g. D3 and D4) often sound similar to the human ear.
+The frequency ratio between successive notes is always the same, and chosen such that that the frequency of a note is half the frequency of the note 12 semitones higher. This means that we group notes into octave groups, each containing 12 notes. Each of these notes has a name: C, C\musSharp{}, D, D\musSharp{}, E, F, F\musSharp{}, G, G\musSharp{}, A, A\musSharp{}, and B (from lowest to highest). This means that we can uniquely identify a note with its name and octave number. The lowest note possible on a piano is A0 (with a frequency of about 28 Hz), and the highest is C8 (with a frequency of about 4200 Hz). It is important to recognise that notes that only differ by octave (e.g. D3 and D4) often sound similar to the human ear.
 
 \subsection{Time}
 
@@ -43,7 +43,7 @@ Whilst beats are regularly spaced, performers will not be able to play notes on 
 
 Furthermore, we can group successive beats into larger groups, called `bars' or `measures'. It is common for bars to be 4 beats long, although this is not always the case (even some of the pieces in our dataset have bars that are 3 beats long).
 
-The temporal pattern in which notes are played between beats/bars is called the rhythm, but we do not make any attempt to infer rhythm.
+The temporal pattern in which notes are played between beats/bars is called the rhythm, but we do not make any attempt to infer rhythm, as this is likely more pertinent to the piece, as opposed to the performer.
 
 
 
@@ -134,6 +134,8 @@ This does not require much work to calculate, and for a finite sequence $x_0, \l
 \subsection{The Mel Scale}
 
 The mel scale is a scale of frequencies that intends to map distance between frequencies to differences in perceptual pitch. This is useful for this project, since the quantity we actually care about is perceived pitch, and not a measure of frequency in Hertz.
+
+This is of particular importance in the onset detection algorithm described in Section \ref{subsec:onset detection}, which calculates power changes in each frequency band. Using a linear Hertz scale here would weight higher pitched notes more than lower pitched notes, which a linear mel scale would not.
 
 There are many different definitions for the mel scale, since perceptual pitch is a relatively subjective measure, but we use the definition in Equation \ref{eq:mel}, where $f$ is a frequency in Hertz and $m$ is the corresponding frequency in the mel scale:
 
@@ -294,7 +296,7 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
  \begin{itemize}
 
    \item
-     Take windows of the sound, we use a 32ms wide window and advance of 4m,s and compute their DFT in the mel scale.
+     Take overlapping windows of the sound, with a width of 32ms wide window and advancing 4ms, and compute their DFT in the mel scale.
 
    \item
      Across all windows, compute the first-order difference for each pitch band, setting negative values to zero (so they do not interfere with the next step)
@@ -316,7 +318,7 @@ The dynamic programming algorithm for beat tracking works by assuming we have so
 
  The idea is to iterate over a range of possible tempos, and for each tempo we compute $\tau$, the time between beats at that tempo. Then, we delay our onset function by $\tau$ to get $O(t - \tau)$, and compute the inner product between $O(t)$ and $O(t-\tau)$ to get a measure of how good our tempo guess was, since a good guess will hopefully align the peaks and thus result in a large inner product.
 
- We weight each of these inner products such that tempos closer to 120 BPM are get higher values (humans tend to gravitate towards this tempo), and then take the tempo with the highest value.
+ We weight each of these inner products such that tempos closer to 120 BPM are get higher values (humans tend to gravitate towards this tempo), and then take the tempo with the highest value. This helps to solve potential issues with aliasing, as if the tempo of a piece is 120 BPM, then 240 BPM could easily be recognised as a valid tempo also. Biasing towards a particular tempo helps to avoid this aliasing, or at least to choose an alias consistently.
 
 
 
@@ -418,8 +420,13 @@ Python has available a number of libraries that allowed for fast development of 
 
   \item
     \texttt{fluidsynth}: This library allows for generating of audio files from a soundfont and symbolic data, which was useful for generating test audio data from scores.
-    
 \end{itemize}
+
+Since this project is distributed as source code, as opposed to a compiled binary, this project does not distribute any of these libraries, so the use of these libraries is permitted under their licensing. In order to use this project, these libraries must be acquired as external dependencies.
+
+\subsection{Software Engineering Methodology}
+
+This project was developed under the waterfall model. The requirements of the project were well-known at the start, since the metrics were defined in the project proposal, and the overlap between different metrics known, making the waterfall model a good fir for this project.
 
 \subsection{Version Control}
 

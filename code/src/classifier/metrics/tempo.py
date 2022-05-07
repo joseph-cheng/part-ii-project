@@ -67,11 +67,14 @@ class TempoCalculator(metric.MetricCalculator):
 
 
         diff = np.diff(beat_times)
+        second_order_diff = np.diff(diff)
+
 
         # now we apply some smoothing to this diff such that small variations are smoothed out
 
         # we just smooth by taking moving average, we choose 4 relatively arbitrarily, although it does correspond to the number of beats in a bar in a 4/4 time signature piece, which is the most common time signature for a lot of Western music
-        smoothed =  util.moving_average(diff, 4)
+        smoothed_diff =  util.moving_average(diff, 4)
+        smoothed_second_order_diff = util.moving_average(second_order_diff, 4)
 
 
         """
@@ -86,7 +89,7 @@ class TempoCalculator(metric.MetricCalculator):
         """
 
 
-        return smoothed
+        return (smoothed_diff, smoothed_second_order_diff)
 
     def calculate_similarity(self, audio1, audio2, metric1, metric2):
         """
@@ -104,12 +107,23 @@ class TempoCalculator(metric.MetricCalculator):
 
         # again we truncate to minimum length in case they are different sizes
 
-        beat_diffs1 = metric1[:min(len(metric1), len(metric2))]
-        beat_diffs2 = metric2[:min(len(metric1), len(metric2))]
+        diffs1, second_order_diffs1 = metric1
+        diffs2, second_order_diffs2 = metric2
 
-        squared_errors_sum = np.sum((beat_diffs1 - beat_diffs2) ** 2)
+        shorter_diffs_length = min(len(diffs1), len(diffs2))
 
-        mse = squared_errors_sum / len(beat_diffs1)
+        diffs1 = diffs1[:shorter_diffs_length]
+        diffs2 = diffs2[:shorter_diffs_length]
+
+        shorter_second_order_diffs_length = min(len(second_order_diffs1), len(second_order_diffs2))
+
+        second_order_diffs1 = second_order_diffs1[:shorter_second_order_diffs_length]
+        second_order_diffs2 = second_order_diffs2[:shorter_second_order_diffs_length]
+
+        diffs_squared_errors_sum = np.sum((diffs1 - diffs2) ** 2)
+        second_order_diffs_squared_errors_sum = np.sum((second_order_diffs1 - second_order_diffs2) ** 2)
+
+        mse = (diffs_squared_errors_sum + second_order_diffs_squared_errors_sum) / (shorter_diffs_length + shorter_second_order_diffs_length)
 
         """
         # more plotting code

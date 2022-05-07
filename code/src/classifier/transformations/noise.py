@@ -13,8 +13,8 @@ class Noise(transformation.Transformation):
         """
         self.noise_path = noise
         self.level = level
-        self.noise = util.read_audio(noise).signal
-        self.noise *= level
+        self.noise = np.array(util.read_audio(noise).signal)
+        self.noise = (self.noise * level)
         self.crossfade = crossfade
 
     def apply(self, audio_obj, out=None):

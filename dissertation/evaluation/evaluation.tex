@@ -23,7 +23,7 @@ It should be noted that graphs/data presented in this chapter are unusually not 
 
 \section{Requirements Analysis Revisited}
 
-All of the non-extension requirements were successfully completed:
+All of the core requirements were successfully completed:
 
 \begin{itemize}
   \item
@@ -101,9 +101,9 @@ This method allows us to get a lot of evaluation data from just a few performanc
 It should be noted here that it may seem like we are inflating the number of trials (which is important to get right for hypothesis testing), since if we have two performances $p_1$ and $p_2$ by the same performer, we have one instance where we choose $p_1$ to be our distinguished performance, and another where we choose $p_2$, and by symmetry of our similarity scorers it may seem like this is a bad idea. However, there could be a third performance $p_3$ that $p_2$ has the highest aggregate similarity with, but does not have the highest aggregate similarity with $p_1$, so we are not inflating the number of trials.
 
 
-We can go even further, and find what success we need for a result to be statistically significantly different from random. For a set of performances $P$, if our system guessed at random, we would have a $\frac{1}{|P|}$ probability of guessing correctly. Now, suppose we have $n$ sets of performances $P_1, \ldots, P_n$. To match our dataset, we will assume that the $P_i$ all have the same size. This means that we can model the number of successful guesses of our system as a random variable modelled by a binomial distribution $X \sim B(n|P_i|, \frac{1}{|P_i|})$. At a significance level of $p$, we then just need to find the least $m$ such that $P(X \geq m) \leq p$.
+We can go even further, and find what success we need for a result to be statistically significantly different from random. For a set of performances $P$, if our system guessed at random, we would have a $\frac{1}{|P|-1}$ probability of guessing correctly. Now, suppose we have $n$ sets of performances $P_1, \ldots, P_n$. To match our dataset, we will assume that the $P_i$ all have the same size. This means that we can model the number of successful guesses of our system as a random variable modelled by a binomial distribution $X \sim B(n|P_i|, \frac{1}{|P_i|-1})$. At a significance level of $p$, we then just need to find the least $m$ such that $P(X \geq m) \leq p$.
 
-For our dataset, we have $n=4$, $|P_i| = 8$, and we set $p$ at 0.05. We then find that $P(X \geq 6) = 0.096$ (2 s.f.) and $P(X \geq 7) = 0.040$ (2 s.f.), so our critical value is 7. This means we only need to get 7 successful trials, or a success of 0.22 (2 s.f.) for our system to be statistically significantly better than random.
+For our dataset, we have $n=4$, $|P_i| = 8$, and we set $p$ at 0.05. We then find that $P(X \geq 7) = 0.076$ (2 s.f.) and $P(X \geq 8) = 0.031$ (2 s.f.), so our critical value is 8. This means we only need to get 8 successful trials, or a success of 0.25, for our system to be statistically significantly better than random.
 
 \subsection{Evaluation Framework}\label{sec:evaluation framework}
 
@@ -117,7 +117,7 @@ In this section we look at the performance of each metric and particular metric 
 
 \subsection{Individual Metrics}
 
-A table of the success' for each metric is given in Table \ref{table:metric results}. 
+A table of the successes for each metric is given in Table \ref{table:metric results}. 
 
 \begin{table}[h]
     \centering
@@ -195,6 +195,10 @@ As we can see, introduction of transformations causes some performances to have 
 
 When looking into the performance of metric combinations, we see that the noise transformation actually results in a better peak success: 0.81 (2 s.f.) with the same best metric combinations for no transformations. When adding the reverb transformation, our peak success decreases, only being able to attain a peak success of 0.69 (2 s.f.), which is no better than the success obtained by the note offsets metrics on its own. Interestingly, we can see that the chroma metric took a large performance hit, and none of the best metric combinations include the chroma metric. Finally, applying noise and then reverb allows us to attain a peak success of 0.75 (2 s.f.) with numerous metric combinations, but none including the chroma metric.
 
+\subsection{Digging a Bit Deeper}
+
+In this section, we explore the behaviour of these result further, looking at how the system changes upon varying these transformations, and some underlying causes within the system that cause this behaviour.
+
 \subsubsection{Noise}
 
 The results for noise seem counter-intuitive, since we seem to be gaining performance by adding noise into our system. The graph in Figure \ref{fig:noiseplot} shows how the best and worst metric performance changes as we increase the amplitude of the noise that we add.
@@ -207,7 +211,7 @@ The results for noise seem counter-intuitive, since we seem to be gaining perfor
     \label{fig:noiseplot}
 \end{figure}
 
-Although the peak performance varies (and sometimes increases), there is a general trend of it decreasing, although it is impressive that the system is still able to perform reasonably well under very amplified noise. The worst performance, however, suffers tremendously, such that the system is sometimes worse than random (which occurs at a success of 0.125), and is even capable of being unable to correctly identify a single performer at certain points. This indicates that the noise is somehow acting adversarially to our system, since otherwise we would not expect the system to become worse than random.
+Although the peak performance varies (and sometimes increases), there is a general trend of it decreasing, although it is impressive that the system is still able to perform reasonably well under very amplified noise. The worst performance, however, suffers tremendously, such that the system is sometimes worse than random (which occurs at a success of 0.125), and is even capable of being unable to correctly identify a single performer at certain points (which is statistically significant at $p=0.05$). This indicates that the noise is somehow acting adversarially to our system, since otherwise we would not expect the system to become worse than random.
 
 Furthermore, the peak performance with additional noise is not statistically significantly different from without noise ($p=0.05$), so we cannot recommend that adding noise is a sensible idea to increase the accuracy of the system.
 
