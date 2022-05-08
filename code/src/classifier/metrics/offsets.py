@@ -86,7 +86,7 @@ class OffsetsCalculator(metric.MetricCalculator):
 
 
     def get_best_nearest_onset(onset_function, expected_beat_time, window_size):
-        """ovidtrack/
+        """
         Gets the distance from the expected beat time of the highest onset value in a small window around the expected beat time
 
         onset_function: an OnsetFunction object containing the onsets of the signal we are searching

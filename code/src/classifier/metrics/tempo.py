@@ -31,22 +31,6 @@ class OnsetFunction:
     def windows_to_time(self, w):
         return self.window_advance * w
 
-    def delay_samples(self, num_samples):
-        if num_samples > 0:
-            return OnsetFunction(self.data[self.samples_to_windows(num_samples):], self.window_advance, self.sample_rate)
-        else:
-            end_point = self.samples_to_windows(abs(num_samples))
-            data = None 
-            if end_point == 0:
-                data = self.data
-            else:
-                data = self.data[:-end_point]
-
-            return OnsetFunction(data, self.window_advance, self.sample_rate)
-
-    def dot(self, other):
-        return np.dot(self.data, other.data)
-
 class TempoCalculator(metric.MetricCalculator):
     def __init__(self):
         # we use this for certain debugging/plotting stuff
@@ -324,27 +308,16 @@ class TempoCalculator(metric.MetricCalculator):
 
         onset_function = audio.get_onset_function()
 
-        # tempo shouldn't go lower than 20
-        min_tempo = 20
+        # calculate autocorrelation
+        auto_correlation = np.correlate(onset_function.data, onset_function.data, mode='full')
+        auto_correlation = auto_correlation[int(auto_correlation.size/2):]
+        weighting = np.linspace(onset_function.windows_to_time(1), onset_function.windows_to_time(len(auto_correlation)), len(auto_correlation))
+        weighting = weighting_func(weighting)
+        # apply weighting
+        weighted_auto_correlation = auto_correlation * weighting
 
-
-        auto_correlation = np.zeros(int(60 / min_tempo * audio.sample_rate))
-
-        # now we iterate over potential tempos and find hte best
-        # iterate over possible delays from 0 to min_tempo samples through
-        for tau_samples in range(1, int(60/min_tempo * audio.sample_rate)):
-            tau = tau_samples / audio.sample_rate
-            delayed_onset = onset_function.delay_samples(tau_samples)
-            truncated_onset = onset_function.delay_samples(-tau_samples)
-
-            # calculate weighted correlation
-            correlation = weighting_func(tau) * delayed_onset.dot(truncated_onset)
-
-            auto_correlation[tau_samples] = correlation
-
-
-        best_tempo_samples = np.argmax(auto_correlation)
-        best_tempo = 60 / (best_tempo_samples / audio.sample_rate)
+        best_tempo_windows = np.argmax(weighted_auto_correlation)
+        best_tempo = 60/onset_function.windows_to_time(best_tempo_windows)
 
         return best_tempo
 

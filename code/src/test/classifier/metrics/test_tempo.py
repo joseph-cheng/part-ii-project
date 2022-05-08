@@ -25,32 +25,12 @@ class OnsetFunctionTestCase(unittest.TestCase):
         index_wanted = 2
         self.assertEqual(self.onset_func.index_window(index_wanted), self.data[index_wanted])
 
-    def test_delay_positive(self):
-        # delay by one window
-        delayed = self.onset_func.delay_samples(self.window_advance * self.sample_rate)
-        self.assertTrue((delayed.data == self.data[1:]).all())
-
-    def test_delay_negative(self):
-        # delay by -one window
-        delayed = self.onset_func.delay_samples(-self.window_advance * self.sample_rate)
-        self.assertTrue((delayed.data == self.data[:-1]).all())
-
-    def test_delay_zero(self):
-        # delay by -one window
-        delayed = self.onset_func.delay_samples(0)
-        self.assertTrue((delayed.data == self.data).all())
 
 
-class TempoCalculatorTestCase(unittest.TestCase):
+class TempoTestCase(unittest.TestCase):
     def setUp(self):
         self.audio = util.read_audio("../res/test_data/metronome.wav")
 
     def test_global_tempo(self):
         estimated_tempo = tempo.TempoCalculator.calculate_global_tempo(self.audio)
-
         self.assertEqual(estimated_tempo, 120)
-
-
-
-
-
