@@ -29,8 +29,9 @@ def moving_average(data, n):
     ret[n:] = ret[n:] - ret[:-n]
 
     # correctly take moving average for first n-2 elements
-    for k in range(min(n-1, len(data)-1)):
+    for k in range(min(n-1, len(data))):
         ret[k] /= (k+1)
+
 
     ret[n-1:] = ret[n-1:] / n
     return ret

@@ -279,7 +279,7 @@ class TempoCalculator(metric.MetricCalculator):
 
 
 
-        convolved_onsets = np.convolve(filtered_onsets, gaussian_window)
+        convolved_onsets = np.convolve(filtered_onsets, gaussian_window, mode='same')
 
         normalized_onsets = convolved_onsets / np.std(convolved_onsets)
 
@@ -326,6 +326,7 @@ class TempoCalculator(metric.MetricCalculator):
 
         # tempo shouldn't go lower than 20
         min_tempo = 20
+
 
         auto_correlation = np.zeros(int(60 / min_tempo * audio.sample_rate))
 
