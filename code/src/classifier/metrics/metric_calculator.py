@@ -1,9 +1,9 @@
-import util
-import metrics.chroma as chroma
-import metrics.dynamics as dynamics
-import metrics.offsets as offsets
-import metrics.tempo as tempo
-import metrics.timbre as timbre
+import classifier.util as util
+import classifier.metrics.chroma as chroma
+import classifier.metrics.dynamics as dynamics
+import classifier.metrics.offsets as offsets
+import classifier.metrics.tempo as tempo
+import classifier.metrics.timbre as timbre
 import matplotlib.pyplot as plt
 
 

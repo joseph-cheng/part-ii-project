@@ -1,7 +1,7 @@
 import numpy as np
-import metrics.timbre as timbre
+import classifier.metrics.timbre as timbre
 import matplotlib.pyplot as plt
-import metrics.metric as metric
+import classifier.metrics.metric as metric
 import scipy.fft
 
 

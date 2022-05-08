@@ -1,8 +1,8 @@
-import util
+import classifier.util as util
 import scipy.stats as stats
 import numpy as np
 import matplotlib.pyplot as plt
-import metrics.metric as metric
+import classifier.metrics.metric as metric
 
 class OffsetsCalculator(metric.MetricCalculator):
     def __init__(self):

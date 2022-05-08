@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.io.wavfile
-import audio
-import util
-import transformations.transformation as transformation
+import classifier.audio as audio
+import classifier.util as util
+import classifier.transformations.transformation as transformation
 
 class Noise(transformation.Transformation):
     def __init__(self, noise, crossfade=0.5, level=1.0):

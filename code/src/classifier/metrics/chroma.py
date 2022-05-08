@@ -1,8 +1,8 @@
-import util
+import classifier.util as util
 import scipy.fft
 import numpy as np
 import matplotlib.pyplot as plt
-import metrics.metric as metric
+import classifier.metrics.metric as metric
 
 class ChromaCalculator(metric.MetricCalculator):
     def __init__(self, window_size=0.1, window_advance=0.025):

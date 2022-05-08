@@ -1,6 +1,6 @@
-import metrics.metric_calculator as metric_calculator
+import classifier.metrics.metric_calculator as metric_calculator
 import itertools
-import util
+import classifier.util as util
 
 if __name__ == "__main__":
     chosen_audio = util.read_audio("../../res/data_demo/participant_1_moonlightsonata_1.wav")

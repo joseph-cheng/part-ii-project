@@ -1,4 +1,6 @@
-import metrics.tempo as tempo
+import os.path
+import os
+import classifier.metrics.tempo as tempo
 import scipy.signal
 
 class Audio:

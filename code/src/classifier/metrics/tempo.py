@@ -1,11 +1,11 @@
 import numpy as np
-import util
+import classifier.util as util
 import scipy.fft
 import scipy.signal.windows
 import scipy.signal
-import metrics.timbre as timbre
+import classifier.metrics.timbre as timbre
 import matplotlib.pyplot as plt
-import metrics.metric as metric
+import classifier.metrics.metric as metric
 
 class OnsetFunction:
     def __init__(self, data, window_advance, sample_rate):

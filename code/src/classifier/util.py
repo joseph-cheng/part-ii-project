@@ -1,6 +1,5 @@
 import scipy.io.wavfile
 import numpy as np
-from audio import Audio
 import matplotlib.pyplot as plt
 
 def read_audio(wavfile_path):
@@ -9,6 +8,8 @@ def read_audio(wavfile_path):
 
     returns: an Audio object containing the mono signal
     """
+    # avoids circular import
+    from classifier.audio import Audio
 
     rate, data = scipy.io.wavfile.read(wavfile_path)
     if data.ndim > 1:

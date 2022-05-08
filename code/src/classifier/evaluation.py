@@ -1,21 +1,21 @@
-import metrics.metric_calculator as metric_calculator
+import classifier.metrics.metric_calculator as metric_calculator
 import matplotlib.pyplot as plt
 import numpy as np
-import util
+import classifier.util as util
 import os
 import os.path
 import itertools
-import transformations.noise as noise
-import transformations.reverb as reverb
-import transformations.unique_reverb as unique_reverb
+import classifier.transformations.noise as noise
+import classifier.transformations.reverb as reverb
+import classifier.transformations.unique_reverb as unique_reverb
 
 TRANSFORMS = [
-        noise.Noise("../../res/noise/room.wav", level=1.0),
-        reverb.Reverb("../../res/irs/studio.wav")
+        noise.Noise("../res/noise/room.wav", level=1.0),
+        reverb.Reverb("../res/irs/studio.wav")
 ]
 
 
-data_dir = "../../res/data"
+data_dir = "../res/data"
 
 class Performance:
     def __init__(self, performer, piece, performance_number, audio, path):
@@ -146,10 +146,8 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 
 
 if __name__ == "__main__":
-    """
     # need to cast to list because we consume the generator in making metric_results
     transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
-    transform_combinations = [()]
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
 
     for transform_combination in transform_combinations:
@@ -164,9 +162,9 @@ if __name__ == "__main__":
     plt.rcParams.update({'font.size': 30})
 
     noise_files = [
-            "../../res/noise/room.wav",
-            "../../res/noise/room2.wav",
-            "../../res/noise/room3.wav",
+            "../res/noise/room.wav",
+            "../res/noise/room2.wav",
+            "../res/noise/room3.wav",
             ]
 
     noise_levels = np.linspace(0.0, 20.0, 11)
@@ -193,6 +191,7 @@ if __name__ == "__main__":
     plt.errorbar(noise_levels, np.median(lowest_scores, axis=1), yerr=np.std(lowest_scores, axis=1), linewidth=4, label="Lowest success")
     plt.legend()
     plt.show()
+    """
 
 
 

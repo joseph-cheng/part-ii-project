@@ -1,8 +1,8 @@
 import numpy as np
 import scipy.io.wavfile
-import util
-import audio
-import transformations.transformation as transformation
+import classifier.util as util
+import classifier.audio as audio
+import classifier.transformations.transformation as transformation
 
 class UniqueReverb(transformation.Transformation):
     def __init__(self, irs):
