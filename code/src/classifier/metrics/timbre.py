@@ -102,13 +102,13 @@ class TimbreCalculator(metric.MetricCalculator):
         highest_freq = TimbreCalculator.hertz_to_mel(highest_freq_hertz)
 
         # we add two for off by one
-        mel_bands = np.linspace(lowest_freq, highest_freq, num=num_filters+2)
+        mel_bands = np.linspace(lowest_freq, highest_freq, num=num_filters+1)
         hertz_bands = TimbreCalculator.mel_to_hertz(mel_bands)
         middles = np.zeros(num_filters)
-        for i in range(1, len(hertz_bands)-1):
-            bottom = hertz_bands[i-1]
-            top = hertz_bands[i]
-            middles[i-1] = (top + bottom) / 2
+        for i in range(1, len(mel_bands)):
+            bottom = mel_bands[i-1]
+            top = mel_bands[i]
+            middles[i-1] = TimbreCalculator.mel_to_hertz((top + bottom) / 2)
 
         return middles
 

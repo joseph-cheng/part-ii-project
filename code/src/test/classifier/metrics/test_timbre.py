@@ -17,5 +17,20 @@ class TimbreTestCase(unittest.TestCase):
 
         self.assertAlmostEqual(hertz, timbre.TimbreCalculator.mel_to_hertz(mels))
 
+    def test_mel_bands(self):
+        highest_freq_mel = 500
+        sample_rate = timbre.TimbreCalculator.mel_to_hertz(highest_freq_mel) * 2
+        num_bands = 5
+        mel_bands = np.array([50,150,250,350,450])
+        hertz_bands = timbre.TimbreCalculator.mel_to_hertz(mel_bands)
+
+        calculated_bands = timbre.TimbreCalculator.calculate_band_freqs(sample_rate, num_filters=len(mel_bands))
+
+        np.testing.assert_almost_equal(calculated_bands, hertz_bands)
+
+    def test_spectrum_to_mel_bands(self)
+
+
+
 
 
