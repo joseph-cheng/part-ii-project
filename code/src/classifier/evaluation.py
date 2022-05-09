@@ -69,7 +69,7 @@ def get_files(data_dir, transforms=[]):
             audio = util.read_audio(full_path)
             # apply transforms repeatedly
             for transform in transforms:
-                audio = transform.apply(audio, out="out.wav")
+                audio = transform.apply(audio)
 
             AUDIO_CACHE[full_path, tuple(transforms)] = audio
 
@@ -148,7 +148,16 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 if __name__ == "__main__":
     # need to cast to list because we consume the generator in making metric_results
     transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
-    transform_combinations = [()]
+    transform_combinations = [
+            (reverb.Reverb("../res/irs/church.wav"),),
+            (reverb.Reverb("../res/irs/sportscentre.wav"),),
+            (unique_reverb.UniqueReverb([
+                "../res/irs/studio.wav",
+                "../res/irs/church.wav",
+                "../res/irs/dales.wav",
+                "../res/irs/sportscentre.wav",
+            ]),),
+            ]
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
 
     for transform_combination in transform_combinations:

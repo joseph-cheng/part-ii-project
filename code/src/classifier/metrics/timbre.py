@@ -154,6 +154,7 @@ class TimbreCalculator(metric.MetricCalculator):
         # now compute the mel filtered power spectra
         filtered_spectrums = np.array(filtered_spectrums)
 
+
         filter_bank_energies = np.sum(filtered_spectrums, axis=1)
 
         return filter_bank_energies
@@ -196,7 +197,7 @@ class TimbreCalculator(metric.MetricCalculator):
         """
 
         # first, we calculate the spectrum of our signal
-        spectrum = scipy.fft.rfft(signal)
+        spectrum = np.abs(scipy.fft.rfft(signal))
         spectrum_freqs = scipy.fft.rfftfreq(len(signal), d=1/sample_rate)
         shifted_spectrum = self.normalise_spectrum(spectrum, spectrum_freqs)
 

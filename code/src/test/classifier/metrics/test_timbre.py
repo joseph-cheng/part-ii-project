@@ -2,6 +2,7 @@ import classifier.metrics.timbre as timbre
 import classifier.util as util
 import numpy as np
 import unittest
+import matplotlib.pyplot as plt
 
 
 class TimbreTestCase(unittest.TestCase):
@@ -28,7 +29,27 @@ class TimbreTestCase(unittest.TestCase):
 
         np.testing.assert_almost_equal(calculated_bands, hertz_bands)
 
-    def test_spectrum_to_mel_bands(self)
+    def test_spectrum_to_mel_bands(self):
+        spectrum = np.array([1 for _ in range(100)])
+        sample_rate_hz = 6300*2
+        sample_rate_mel = 2595
+        mel_energies = timbre.TimbreCalculator.spectrum_to_mel_bands(spectrum, sample_rate_hz, num_filters=5)
+        np.testing.assert_almost_equal(mel_energies, [3,5,7,10,15])
+
+    def test_normalise_spectrum_up(self):
+        audio = util.read_audio("../res/test_data/A.wav")
+        pitch = 440
+        target_pitch = 1000
+        timbre_calculator = timbre.TimbreCalculator(target_pitch=target_pitch)
+        spectrum = np.abs(np.fft.rfft(audio.signal))
+        freqs = np.fft.rfftfreq(len(audio.signal), d = 1/audio.sample_rate)
+
+        shifted_spectrum = timbre_calculator.normalise_spectrum(spectrum, freqs)
+        self.assertAlmostEqual(freqs[np.argmax(shifted_spectrum)], target_pitch)
+
+
+
+
 
 
 
