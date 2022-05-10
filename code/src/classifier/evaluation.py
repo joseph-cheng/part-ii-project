@@ -148,6 +148,7 @@ def evaluate_metrics(data_dir, metrics, transforms=[]):
 if __name__ == "__main__":
     # need to cast to list because we consume the generator in making metric_results
     transform_combinations = list(itertools.chain.from_iterable(itertools.combinations(TRANSFORMS, i) for i in range(0, len(TRANSFORMS)+1)))
+    """
     transform_combinations = [
             (reverb.Reverb("../res/irs/church.wav"),),
             (reverb.Reverb("../res/irs/sportscentre.wav"),),
@@ -158,6 +159,8 @@ if __name__ == "__main__":
                 "../res/irs/sportscentre.wav",
             ]),),
             ]
+    """
+
     metric_results = {transform_combination: {} for transform_combination in transform_combinations}
 
     for transform_combination in transform_combinations:

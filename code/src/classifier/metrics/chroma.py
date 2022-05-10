@@ -123,7 +123,7 @@ class ChromaCalculator(metric.MetricCalculator):
         returns: a 12-length NP array containing a coefficient for each pitch class
         """
 
-        spectrum = scipy.fft.rfft(signal)
+        spectrum = np.abs(scipy.fft.rfft(signal))
         max_frequency = sample_rate/2
 
         freq_to_index = lambda f: int(f * (len(spectrum)/max_frequency))
