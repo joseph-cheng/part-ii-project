@@ -92,6 +92,8 @@ A high-level overview of the repository is given in Figure \ref{fig:repositoryov
 |   |-- data/
 |   |   contains all of the piano recordings
 |   |     discussed in section 2.4
+|   |   test_data/
+|   |   contains data used for unit tests
 |   |-- irs/
 |   |   contains samples of impulse responses for reverb
 |   |     discussed in section 3.5.2
@@ -113,17 +115,17 @@ A high-level overview of the repository is given in Figure \ref{fig:repositoryov
     |   `-- transformations/
     |       contains transformation implementations
     |         dicussed in section 3.5
-    `-- data_synthesis/
-        contains all of the data synthesis implementation
-          discussed in section 3.3
+    |-- data_synthesis/
+    |   contains all of the data synthesis implementation
+    |     discussed in section 3.3
+    `-- test/
+        contains unit tests for the classifier code
 \end{verbatim}
 \caption{Repository overview}
 \label{fig:repositoryoverview}
 \end{figure}
 
-Noticeably, unit tests are missing from the repository. This was by choice, however. Most of the code went through significant changes, in both implementation and expected result. Implementing unit testing for one of the metric calculators, for example, would have been mostly useless since it is likely that the design of that metric calculator would soon change.
-
-All of the code was written by the dissertation author. All files in the \texttt{res/data/} directory were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
+All of the code was written by the dissertation author. All files in the \texttt{res/data/} and \texttt{res/test\_data/} directories were created by the dissertation author, and all other files in the \texttt{res/} directory were found online.
 
 In particular, files in the \texttt{res/irs/} directory were taken from the University of York's \href{https://www.openairlib.net}{OpenAir} project under the Creative Commons 4.0 License\footnote{\url{https://creativecommons.org/licenses/by/4.0/}}. Files in the \texttt{res/noise/}, \texttt{res/scores/}, and \texttt{res/soundfonts/} directories were taken using the Creative Commons 1.0 license.
 
@@ -163,7 +165,6 @@ MusicXML is a file format designed to store music scores for computer-readabilit
     <octave>4</octave>
   </pitch>
   <duration>80</duration>
-
   <voice>1</voice>
 </note>
 \end{verbatim}
@@ -281,7 +282,7 @@ The computation of this metric builds closely on top of the beat tracking algori
 \begin{figure}[h]
   \centering
   \captionsetup{justification=centering}
-  \includegraphics[scale=0.3]{spectrogram}
+  \includegraphics[scale=0.25]{spectrogram}
   \caption{Spectrogram of an excerpt of a piano performance. Note onsets are manually marked in green}
   \label{fig:spectrogrambeats}
 \end{figure}
@@ -370,7 +371,7 @@ Furthermore, the choice of frequency weighting also requires consideration. We c
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.3]{itu468} 
+  \includegraphics[scale=0.25]{itu468} 
   \caption{The ITU-R 468 frequency weighting curve}
   \label{fig:itu468}
 \end{figure}
@@ -463,18 +464,16 @@ So, from the offsets we generate the mean and standard deviation for a normal di
 \begin{figure}[h]
   \captionsetup{justification=centering}
   \centering
-  \begin{subfigure}[b]{\textwidth}
+  \begin{minipage}{0.5\textwidth}
     \centering
-    \includegraphics[scale=0.25]{offsetdist1}
-    \label{fig:offsetdist1}
-    \caption{}
-  \end{subfigure}
-
-  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[scale=0.21]{offsetdist1}
+    \subcaption{}
+  \end{minipage}%
+  \begin{minipage}{0.5\textwidth}
     \centering
-    \includegraphics[scale=0.25]{offsetdist2}
-    \caption{}
-  \end{subfigure}
+    \includegraphics[scale=0.21]{offsetdist2}
+    \subcaption{}
+  \end{minipage}
   \caption{Inferred probability distributions for different performers (a) and the same performer (b)}
   \label{fig:offsetdists}
 \end{figure}
@@ -511,16 +510,16 @@ The timbre of a sound comes from its harmonic content, i.e. what frequencies are
 
 \begin{figure}[h]
   \centering
-  \begin{subfigure}[b]{\textwidth}
+  \begin{minipage}{0.5\textwidth}
     \centering
-    \includegraphics[scale=0.35]{saxc}
-    \caption{}
-  \end{subfigure}
-  \begin{subfigure}[b]{\textwidth}
+    \includegraphics[scale=0.27]{saxc}
+    \subcaption{}
+  \end{minipage}%
+  \begin{minipage}{0.5\textwidth}
     \centering
-    \includegraphics[scale=0.35]{pianoc}
-    \caption{}
-  \end{subfigure}
+    \includegraphics[scale=0.27]{pianoc}
+    \subcaption{}
+  \end{minipage}
   \caption{Spectrogram of the note C played on a saxophone (a) and piano (b)}
   \label{fig:saxpianoc}
 \end{figure}
@@ -584,7 +583,7 @@ When a sound is played in a room, it will reflect, and be absorbed by, surfaces 
 
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.35]{reverb}
+  \includegraphics[scale=0.25]{reverb}
   \caption{Result of applying convolution reverb}
   \label{fig:reverb}
 \end{figure}

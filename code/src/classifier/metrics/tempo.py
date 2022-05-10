@@ -49,11 +49,8 @@ class TempoCalculator(metric.MetricCalculator):
         # this makes sure we cache the beat times
         beat_times = audio.get_beat_times()
 
-
         diff = np.diff(beat_times)
         second_order_diff = np.diff(diff)
-
-
         # now we apply some smoothing to this diff such that small variations are smoothed out
 
         # we just smooth by taking moving average, we choose 4 relatively arbitrarily, although it does correspond to the number of beats in a bar in a 4/4 time signature piece, which is the most common time signature for a lot of Western music
@@ -168,11 +165,8 @@ class TempoCalculator(metric.MetricCalculator):
             backtrace_array[window] = best_tau
 
 
-
         # now we have done the dynamic programming, just need to backtrace
-
         # so we first find the final beat, time, the highest scoring t
-
         final_beat_time = np.argmax(score_array)
 
         beats = [final_beat_time]
@@ -207,7 +201,6 @@ class TempoCalculator(metric.MetricCalculator):
         mel_bands = 40
 
         num_windows = len(onset_array)
-
 
         audio = audio.resample(8000)
 
@@ -260,16 +253,10 @@ class TempoCalculator(metric.MetricCalculator):
         gaussian_window = scipy.signal.windows.gaussian(
             int(envelope_length / window_advance), int(envelope_sigma / window_advance))
 
-
-
-
         convolved_onsets = np.convolve(filtered_onsets, gaussian_window, mode='same')
-
         normalized_onsets = convolved_onsets / np.std(convolved_onsets)
 
-
-
-
+        # the windowing means we slightly lose the first few milliseconds in the onset function, which we add back in here to line up with the original audio
         offset_added_by_window = int(window_size/window_advance)
         normalized_onsets = np.insert(normalized_onsets, offset_added_by_window, np.zeros(offset_added_by_window))
         onset_function = OnsetFunction(normalized_onsets, window_advance, audio.sample_rate)
@@ -285,8 +272,6 @@ class TempoCalculator(metric.MetricCalculator):
         plt.xticks([])
         plt.show()
         """
-
-
 
         return onset_function
 

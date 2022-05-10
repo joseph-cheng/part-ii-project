@@ -124,32 +124,30 @@ A table of the successes for each metric is given in Table \ref{table:metric res
     \begin{tabular}{cc}
         \textbf{Metric}&\textbf{Success} (2 s.f.) \\
         \midrule[0.15em]
-        Tempo variation over time&0.31 \\
-        Dynamics over time&0.56 \\
-         Chroma vector extraction&0.50 \\
-         Note offsets&0.66 \\
+        Tempo variation over time&0.59 \\
+        Dynamics over time&0.53 \\
+         Chroma vector extraction&0.38 \\
+         Note offsets&0.63 \\
          Timbre extraction&0.25\\
     \end{tabular}
     \caption{Individual metric results}
     \label{table:metric results}
 \end{table}
 
-Whilst the results for individual metrics are not stellar, they are all statistically significantly different from random (at $p=0.05$) which shows that, to some extent, each of the metrics were devised and implemented sensibly. Three metrics, however, performed significantly better than the other two: dynamics over time, chroma vector extraction, and note offsets. The metric that performed the worst was the timbre extraction metric, which was theorised at the start to not have the most potential. It is possible that the timbre extraction might not even be significantly better than random on its own merit: as explained in Section \ref{sec:timbre metric}, our estimation of normalising the MFCCs on pitch is only crude, and so the performance of this metric might instead be proxying the performance of the chroma metric.
+Whilst the results for individual metrics are not stellar, they are all statistically significantly different from random (at $p=0.05$) which shows that, to some extent, each of the metrics were devised and implemented sensibly. Three metrics, however, performed significantly better than the other two: dynamics over time, tempo variation over time, and note offsets. The metric that performed the worst was the timbre extraction metric, which was theorised at the start to not have the most potential. It is possible that the timbre extraction might not even be significantly better than random on its own merit: as explained in Section \ref{sec:timbre metric}, our estimation of normalising the MFCCs on pitch is only crude, and so the performance of this metric might instead be proxying the performance of the chroma metric.
 
 %TODO: remember that poor performance of the tempo metric might be bad scaling
 % no clue what this means ^
 
 \subsection{Metric Combinations}
 
-Whilst individual metrics were not able to perform extremely well, much better performance could be attained by combining multiple metrics together. For example, as theorised in Section \ref{sec:chroma similarity}, the combination of both the chroma and dynamics metrics were able to achieve a success of 0.59 (2 s.f.), due to there being some pieces/performers that the chroma metric was good at differentiating, and some distinct pieces/performers that the dynamics metric was good at differentiating.
+Whilst individual metrics were not able to perform extremely well, much better performance could be attained by combining multiple metrics together. For example, as theorised in Section \ref{sec:chroma similarity}, the combination of both the chroma and dynamics metrics were able to achieve a success of 0.56 (2 s.f.), due to there being some pieces/performers that the chroma metric was good at differentiating, and some distinct pieces/performers that the dynamics metric was good at differentiating.
 
-By just combining two metrics, the best success attained was the combination of the dynamics and offsets metrics (the two highest performing individual metrics), achieving a success of 0.75 (2 s.f.).
+By just combining two metrics, the best success attained was the combination of the dynamics and offsets metrics (the two highest performing individual metrics), achieving a success of 0.63 (2 s.f.).
 
-Even better results could be attained by combining 3 or 4 metrics. The two best metric combinations were found by combining the chroma, dynamics, and offsets metrics, and by combining the chroma, dynamics, offsets, and timbre metrics, both achieving a success of 0.78 (2 s.f.). Since the only difference between these two sets of metrics is the addition of the timbre metric, this provides even more evidence that the timbre metric is not that useful. In fact, combining any other metric $M$ with the timbre metric did not result in a different success to having just $M$ by itself.
+Even better results could be attained by combining 3 or 4 metrics. The two best metric combinations were found by combining the chroma, dynamics, and offsets metrics, and by combining the chroma, dynamics, offsets, and timbre metrics, both achieving a success of 0.72 (2 s.f.). Since the only difference between these two sets of metrics is the addition of the timbre metric, this provides even more evidence that the timbre metric is not that useful. In fact, combining any other metric $M$ with the timbre metric did not result in a different success to having just $M$ by itself.
 
-Interestingly, combining all 5 metrics only resulted in a success of 0.69 (2 s.f.), which implies that the tempo metric is somehow antagonistic with some other metrics in our system.
-
-By investigating further, we find that only the chroma metric received an increase in success when combined with the tempo metric (increasing from 0.50 to 0.59 (2 s.f.)), whereas all other metrics (ignoring timbre) took a decrease in success of 28\% and 10\% for dynamics and note offsets respectively. So, even though there is some affinity between the chroma and tempo metrics, this is not enough to outweigh the antagonism between the tempo metric and the dynamics and note offsets metrics, resulting in a decrease in performance when we use all 5 metrics.
+By combining all 5 metrics, we are also able to obtain a success of 0.72 (2 s.f.)
 
 \subsection{Performance Under Transformations}
 
@@ -157,32 +155,18 @@ The performance of the metrics under noise and reverb transformations is somewha
 
 The impulse response used for generating reverb for these results is the impulse response of a recording studio.
 
+
 \begin{table}[h]
     \centering
-    \begin{tabular}{c|cc}
-        \textbf{Transformation}&\textbf{Metric}&\textbf{Success} (2 s.f.) \\
-        \midrule[0.15em]
-        \multirow{5}{*}{None} &Tempo variation over time&0.31 \\ \cline{2-3}
-                              &Dynamics over time&0.56 \\ \cline{2-3}
-                              &Chroma vector extraction&0.50 \\ \cline{2-3}
-                              &Note offsets&0.66 \\ \cline{2-3}
-                              &Timbre extraction&0.25\\ \midrule[0.1em]
-        \multirow{5}{*}{Noise} & Tempo variation over time & 0.31 \\ \cline{2-3}
-                               &Dynamics over time & 0.47 \\ \cline{2-3}
-                               &Chroma vector extraction & 0.53 \\ \cline{2-3}
-                               &Note offsets & 0.63 \\ \cline{2-3}
-                               &Timbre extraction & 0.25 \\ \midrule[0.1em]
-        \multirow{5}{*}{Reverb} & Tempo variation over time & 0.38 \\ \cline{2-3}
-                                &Dynamics over time & 0.53 \\ \cline{2-3}
-                                &Chroma vector extraction & 0.38 \\ \cline{2-3}
-                                &Note offsets & 0.69 \\ \cline{2-3}
-                                &Timbre extraction & 0.25 \\ \midrule[0.1em]
-
-        \multirow{5}{*}{Noise + Reverb} & Tempo variation over time & 0.41 \\ \cline{2-3}
-                                &Dynamics over time & 0.50 \\ \cline{2-3}
-                                &Chroma vector extraction & 0.41 \\ \cline{2-3}
-                                &Note offsets &  0.63\\ \cline{2-3}
-                                &Timbre extraction & 0.25 \\ 
+    \begin{tabular}{ccccc}
+      \textbf{Metric}&\multicolumn{4}{c}{\textbf{Success under transformation} (2 s.f.)}\\
+      &None&Noise&Reverb&Noise + Reverb\\
+      \midrule[0.15em]
+      Tempo variation over time&0.59&0.62&0.72&0.47\\
+      Dynamics over time&0.53&0.47&0.53&0.50\\
+      Chroma vector extraction&0.38&0.44&0.31&0.44\\
+      Note offsets&0.63&0.59&0.53&0.69\\
+      Timbre extraction&0.25&0.25&0.25&0.25\\
         
     \end{tabular}
     \caption{Individual metric results under various transformations}
@@ -193,7 +177,7 @@ The impulse response used for generating reverb for these results is the impulse
 
 As we can see, introduction of transformations causes some performances to have a reduction in performance, but bolsters others. The timbre metric remains completely unaffected by any transformation, which again implies that it is not much better than random.
 
-When looking into the performance of metric combinations, we see that the noise transformation actually results in a better peak success: 0.81 (2 s.f.) with the same best metric combinations for no transformations. When adding the reverb transformation, our peak success decreases, only being able to attain a peak success of 0.69 (2 s.f.), which is no better than the success obtained by the note offsets metrics on its own. Interestingly, we can see that the chroma metric took a large performance hit, and none of the best metric combinations include the chroma metric. Finally, applying noise and then reverb allows us to attain a peak success of 0.75 (2 s.f.) with numerous metric combinations, but none including the chroma metric.
+When looking into the performance of metric combinations, we see that the noise transformation actually results in a better peak success: 0.81 (2 s.f.) with the same best metric combinations for no transformations. When adding the reverb transformation, our peak success remains the same, however provided only by the tempo metric. Interestingly, we can see that the chroma metric took a performance hit. Finally, applying noise and then reverb allows us to attain a peak success of 0.72 (2 s.f.) again with numerous metric combinations, but none including the chroma metric.
 
 \subsection{Digging a bit Deeper}
 
@@ -206,8 +190,8 @@ The results for noise seem counter-intuitive, since we seem to be gaining perfor
 \begin{figure}[h]
     \captionsetup{justification=centering}
     \centering
-    \includegraphics[scale=0.3]{noiseplot3}
-    \caption{Best and worst metric performance against noise amplitude (error bars created by recording similar noise)}
+    \includegraphics[scale=0.25]{noiseplot3}
+    \caption{Best and worst metric performance against noise amplitude (error bars created by recording similar noise samples)}
     \label{fig:noiseplot}
 \end{figure}
 
@@ -227,17 +211,17 @@ Figure \ref{fig:convolutionspectrograms} shows excerpts of spectrograms for a pe
 \begin{figure}[h]
   \captionsetup{justification=centering}
 \begin{minipage}{.33\textwidth}
-  \includegraphics[scale=0.65]{before_reverb}
+  \includegraphics[scale=0.55]{before_reverb}
   \subcaption{}
 \end{minipage}%
 \begin{minipage}{.33\textwidth}
   \flushleft
-  \includegraphics[scale=0.65]{after_reverb}
+  \includegraphics[scale=0.55]{after_reverb}
   \subcaption{}
 \end{minipage}%
 \begin{minipage}{.33\textwidth}
   \centering
-  \includegraphics[scale=0.65]{ir}
+  \includegraphics[scale=0.55]{ir}
   \subcaption{}
 \end{minipage}
 \caption{Spectrograms of a performance before reverb (a), after reverb (b), and the impulse response used to generate reverb (c)}
@@ -255,17 +239,17 @@ Unfortunately, due to our construction of reverb, we cannot vary the level of re
   \begin{tabular}{cCCC}
     \textbf{Metric}&\textbf{Success with studio reverb} (2 s.f.)&\textbf{Success with church reverb} (2 s.f.)&\textbf{Success with sports centre reverb} (2 s.f.)\\
         \midrule[0.15em]
-        Tempo variation over time & 0.38 & 0.47 &0.34\\
-        Dynamics over time&0.53&0.69&0.81\\
-        Chroma vector extraction&0.38&0.34&0.53\\
-        Note offsets&0.69&0.66&0.53\\
+        Tempo variation over time & 0.72 & 0.34 &0.41\\
+        Dynamics over time&0.53&0.68&0.81\\
+        Chroma vector extraction&0.31&0.31&0.28\\
+        Note offsets&0.53&0.56&0.62\\
         Timbre extraction&0.25&0.25&0.25\\
   \end{tabular}
   \caption{Results for varying levels of reverb}
   \label{table:reverb results}
 \end{table}
 
-Most variations in success are not statistically significant ($p=0.05$). However, the dynamics metric shows large (and statistically significant) jumps in success when reverb is added. Again, like the results for adding noise, this is counter-intuitive since we seem to be able to increase performance by making our data `worse'. However, this particular result comes from an implementation detail in the dynamics similarity calculator: in order to calculate the similarity of two dynamics metrics, we truncate the longer metric to match the length of the other. As a result of doing this, the reverb tail of the shorter metric will remain, whereas the reverb tail of the longer metric gets truncated. Since the reverb tail gets very quiet, we end up comparing the loudness of a quiet reverb tail against the loudness of when someone is actually playing notes. This means that when two audio signals are dissimilar in duration, they are marked as dissimilar by the dynamics metric. Since the same performer tends to play the same piece for the same duration, the dynamics metric is able to get high success when we apply more reverb, since there is a longer reverb tail.
+The tempo metric suffers due to the extending of note onsets from the reverb leading to a poor estimation of global tempo. For most other metrics, variations in success are not statistically significant ($p=0.05$). However, the dynamics metric shows large (and statistically significant) jumps in success when reverb is added. Again, like the results for adding noise, this is counter-intuitive since we seem to be able to increase performance by making our data `worse'. However, this particular result comes from an implementation detail in the dynamics similarity calculator: in order to calculate the similarity of two dynamics metrics, we truncate the longer metric to match the length of the other. As a result of doing this, the reverb tail of the shorter metric will remain, whereas the reverb tail of the longer metric gets truncated. Since the reverb tail gets very quiet, we end up comparing the loudness of a quiet reverb tail against the loudness of when someone is actually playing notes. This means that when two audio signals are dissimilar in duration, they are marked as dissimilar by the dynamics metric. Since the same performer tends to play the same piece for the same duration, the dynamics metric is able to get high success when we apply more reverb, since there is a longer reverb tail.
 
 Figure \ref{fig:dynamics reverb tails} shows this, where we can see only one reverb tail with different performers, whereas we see two reverb tails with the same performer.
 
